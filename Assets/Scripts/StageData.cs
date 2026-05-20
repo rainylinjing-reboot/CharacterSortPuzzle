@@ -1,14 +1,14 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 [CreateAssetMenu(fileName = "NewStageData", menuName = "PuzzleGame/StageData")]
 public class StageData : ScriptableObject
 {
-    [Header("[ ½ºÅ×ÀÌÁö ±âº» ¼³Á¤ ]")]
-    public int stageNumber;          // ½ºÅ×ÀÌÁö ¹øÈ£
-    public int activeLines = 4;      // »ç¿ëÇÒ ¸ŞÀÎ ¶óÀÎÀÇ °³¼ö (Stage 1 = 4, Stage 2 = 5)
-    public int characterTypeCount = 4;// »ç¿ëÇÒ Ä³¸¯ÅÍ Á¾·ù ¼ö (Stage 1 = 4, Stage 2 = 5)
-    public float timeLimit = 90f;    // Á¦ÇÑ ½Ã°£ (Stage 1 = 90s, Stage 2 = 120s)
+    [Header("[ ìŠ¤í…Œì´ì§€ ê¸°ë³¸ ì„¤ì • ]")]
+    public int stageNumber;          // ìŠ¤í…Œì´ì§€ ë²ˆí˜¸
+    public int activeLines = 4;      // ì‚¬ìš©í•  ë©”ì¸ ë¼ì¸ì˜ ê°œìˆ˜ (Stage 1 = 4, Stage 2 = 5)
+    public int characterTypeCount = 4;// ì‚¬ìš©í•  ìºë¦­í„° ì¢…ë¥˜ ìˆ˜ (Stage 1 = 4, Stage 2 = 5)
+    public float timeLimit = 90f;    // ì œí•œ ì‹œê°„ (Stage 1 = 90s, Stage 2 = 120s)
 
-    [Header("[ ´ë±â¿­ ¼³Á¤ ]")]
-    public int waitingSlotCount = 5; // ´ë±â¿­ ½½·Ô ¼ö (±âº» 5°³)
+    [Header("[ ëŒ€ê¸°ì—´ ì„¤ì • ]")]
+    public int waitingSlotCount = 5; // ëŒ€ê¸°ì—´ ìŠ¬ë¡¯ ìˆ˜ (ê¸°ë³¸ 5ê°œ)
 }

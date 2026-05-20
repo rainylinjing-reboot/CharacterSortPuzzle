@@ -1,11 +1,11 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System;
 
 [System.Serializable]
 public struct CharacterEntry
 {
     public CharacterType type;
-    public GameObject prefab; // °¢ Å¸ÀÔ¿¡ ¸Â´Â 3D Ä³¸¯ÅÍ ÇÁ¸®ÆÕ
+    public GameObject prefab; // ê° íƒ€ì…ì— ë§ëŠ” 3D ìºë¦­í„° í”„ë¦¬íŒ¹
 }
 
 [CreateAssetMenu(fileName = "CharacterPrefabSet", menuName = "PuzzleGame/CharacterPrefabSet")]
@@ -13,7 +13,7 @@ public class CharacterPrefabSet : ScriptableObject
 {
     public CharacterEntry[] characterPrefabs;
 
-    // Æ¯Á¤ Ä³¸¯ÅÍ Å¸ÀÔ¿¡ ¸Â´Â ÇÁ¸®ÆÕÀ» ¾ÈÀüÇÏ°Ô ¹İÈ¯ÇÏ´Â ÇïÆÛ ÇÔ¼ö
+    // íŠ¹ì • ìºë¦­í„° íƒ€ì…ì— ë§ëŠ” í”„ë¦¬íŒ¹ì„ ì•ˆì „í•˜ê²Œ ë°˜í™˜í•˜ëŠ” í—¬í¼ í•¨ìˆ˜
     public GameObject GetPrefab(CharacterType type)
     {
         if (characterPrefabs == null) return null;

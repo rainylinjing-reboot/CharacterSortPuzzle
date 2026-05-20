@@ -1,30 +1,26 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class LineController : MonoBehaviour
 {
-    [Header("[ ¶óÀÎ ¼³Á¤ ]")]
-    public int lineIndex; // ¶óÀÎÀÇ °íÀ¯ ¹øÈ£
-    public bool isWaitingLine = false; // ´ë±â¿­ ¶óÀÎ ¿©ºÎ
-
-    // ÇÏÀ§¿¡ ¹èÄ¡µÈ ½½·Ôµé (Slot_0 ~ Slot_4 ¼ø¼­´ë·Î Inspector¿¡¼­ µî·Ï ÇÊ¼ö)
+    [Header("[ ë¼ì¸ ì„¤ì • ]")]
+    public int lineIndex;
+    public bool isWaitingLine = false;
     public Slot[] slots = new Slot[5];
 
     private void Awake()
     {
-        // ÀÎµ¦½º ¹æ¾î ÄÚµå ¹× ÀÚµ¿ ¼¼ÆÃ
         for (int i = 0; i < slots.Length; i++)
         {
             if (slots[i] != null)
             {
                 slots[i].slotIndex = i;
+                slots[i].ownerLine = this; // [3ì°¨ ì¶”ê°€ íŒŒíŠ¸ ìë™ ì—°ë™] ìŠ¬ë¡¯ì—ê²Œ ì£¼ì¸ ë¼ì¸ ì£¼ì…
             }
         }
     }
 
-    // ÀÌ ¶óÀÎ¿¡¼­ °¡Àå À§ÂÊ(³ôÀº index)¿¡ ÀÖÀ¸¸é¼­ ¼±ÅÃ °¡´ÉÇÑ Ä³¸¯ÅÍ¸¦ Ã£À½
     public CharacterPiece GetTopCharacter()
     {
-        // Slot_4ºÎÅÍ Slot_0±îÁö ¿ª¼øÀ¸·Î °Ë»ç
         for (int i = slots.Length - 1; i >= 0; i--)
         {
             if (slots[i] != null && !slots[i].IsEmpty)
@@ -32,13 +28,11 @@ public class LineController : MonoBehaviour
                 return slots[i].GetCharacter();
             }
         }
-        return null; // Ä³¸¯ÅÍ°¡ ÇÏ³ªµµ ¾ø´Â ºó ÁÙÀÎ °æ¿ì
+        return null;
     }
 
-    // Ä³¸¯ÅÍ°¡ ÀÌµ¿ÇØ µé¾î¿Ã ¼ö ÀÖ´Â °¡Àå ¾Æ·¡ÂÊ(³·Àº index) ºó ½½·ÔÀ» ¹İÈ¯
     public Slot GetFirstEmptySlot()
     {
-        // Slot_0ºÎÅÍ Slot_4±îÁö ¼ø¼­´ë·Î °Ë»ç
         for (int i = 0; i < slots.Length; i++)
         {
             if (slots[i] != null && slots[i].IsEmpty)
@@ -46,6 +40,6 @@ public class LineController : MonoBehaviour
                 return slots[i];
             }
         }
-        return null; // ÁÙÀÌ °¡µæ Âù °æ¿ì
+        return null;
     }
 }

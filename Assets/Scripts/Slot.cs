@@ -1,14 +1,17 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class Slot : MonoBehaviour
 {
-    [Header("[ ½½·Ô »óÅÂ ]")]
-    public int slotIndex; // 0 (°¡±î¿î ¾Æ·¡ÂÊ) ~ 4 (¸Õ À§ÂÊ/Ãâ±¸)
+    [Header("[ ìŠ¬ë¡¯ ìƒíƒœ ]")]
+    public int slotIndex;
+    public LineController ownerLine;
 
-    // ÇöÀç ÀÌ ½½·Ô¿¡ ¹èÄ¡µÈ Ä³¸¯ÅÍ ÇÇ½º (ºñ¾îÀÖÀ¸¸é null)
     private CharacterPiece currentPiece = null;
 
     public bool IsEmpty => currentPiece == null;
+
+    // ê¸°ì¡´ OnMouseDown()ì€ ê¹”ë”í•˜ê²Œ ì‚­ì œë˜ì—ˆìŠµë‹ˆë‹¤.
+    // ì´ì œ ë§ˆìš°ìŠ¤ ê°ì§€ëŠ” GameManagerê°€ ì´ê´„í•©ë‹ˆë‹¤.
 
     public void SetCharacter(CharacterPiece piece)
     {

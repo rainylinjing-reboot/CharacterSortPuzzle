@@ -1,39 +1,35 @@
-using UnityEngine;
+ï»¿using UnityEngine;
+using System.Collections.Generic;
 
 public class BoardManager : MonoBehaviour
 {
-    [Header("[ ¶óÀÎ ÄÄÆ÷³ÍÆ® µî·Ï ]")]
-    public LineController[] mainLines;       // ¸ŞÀÎ º¸µåÀÇ ÃÖ´ë 5°³ ¶óÀÎ
-    public LineController waitingLine;       // ´ë±â¿­ ¶óÀÎ 1°³
+    [Header("[ ë¼ì¸ ì»´í¬ë„ŒíŠ¸ ë“±ë¡ ]")]
+    public LineController[] mainLines;
+    public LineController waitingLine;
 
-    // ÇöÀç ½ºÅ×ÀÌÁö Á¶°Ç¿¡ ¸ÂÃç º¸µå ÆÇÀÇ ¶óÀÎµéÀ» È°¼ºÈ­/ºñÈ°¼ºÈ­
+    [Header("[ ìºë¦­í„° ìƒì„± ì„¤ì • ]")]
+    public CharacterPrefabSet prefabSet;
+    public Transform characterParent;        // Hierarchyì˜ CharacterGroup ì˜¤ë¸Œì íŠ¸ ì—°ê²° ì¹¸
+
     public void SetupBoard(StageData stageData)
     {
-        if (stageData == null)
-        {
-            Debug.LogError("StageData°¡ º¸µå¸Å´ÏÀú¿¡ ÀÔ·ÂµÇÁö ¾Ê¾Ò½À´Ï´Ù.");
-            return;
-        }
+        if (stageData == null) return;
 
-        // 1. ¸ŞÀÎ ¶óÀÎ ¼¼ÆÃ (¼³Á¤µÈ °³¼ö¸¸Å­¸¸ È°¼ºÈ­)
         for (int i = 0; i < mainLines.Length; i++)
         {
             if (mainLines[i] != null)
             {
-                // ½ºÅ×ÀÌÁö ¶óÀÎ ¼öº¸´Ù ÀÛÀº ÀÎµ¦½º¸¸ ÄÑ°í, ³ª¸ÓÁö´Â ²ù
                 bool isLineActive = i < stageData.activeLines;
                 mainLines[i].gameObject.SetActive(isLineActive);
                 mainLines[i].lineIndex = i;
             }
         }
 
-        // 2. ´ë±â¿­ ¶óÀÎ ¼¼ÆÃ (Ç×»ó È°¼ºÈ­ÇÏµÇ ½½·Ô ¼ö Á¶°Ç ¹æ¾î)
         if (waitingLine != null)
         {
             waitingLine.gameObject.SetActive(true);
             waitingLine.isWaitingLine = true;
 
-            // ´ë±â¿­ ³»ºÎ ½½·Ô °³¼ö ¼¼ÆÃ ¹æ¾î ÄÚµå
             for (int i = 0; i < waitingLine.slots.Length; i++)
             {
                 if (waitingLine.slots[i] != null)
@@ -43,7 +39,82 @@ public class BoardManager : MonoBehaviour
                 }
             }
         }
+    }
 
-        Debug.Log($"Stage {stageData.stageNumber} º¸µå ±¸¼º ¿Ï·á. È°¼º ¶óÀÎ: {stageData.activeLines}");
+    public void SpawnCharacters(StageData stageData)
+    {
+        if (prefabSet == null)
+        {
+            Debug.LogError("CharacterPrefabSetì´ ì—†ìŠµë‹ˆë‹¤.");
+            return;
+        }
+
+        // 1. ì´ë²ˆ ìŠ¤í…Œì´ì§€ì— í•„ìš”í•œ ìºë¦­í„° ë¦¬ìŠ¤íŠ¸ ìƒì„±
+        List<CharacterType> characterPool = new List<CharacterType>();
+        for (int i = 0; i < stageData.activeLines; i++)
+        {
+            CharacterType type = (CharacterType)(i + 1);
+            for (int j = 0; j < 4; j++)
+            {
+                characterPool.Add(type);
+            }
+        }
+
+        // 2. ëœë¤ ì…”í”Œ
+        for (int i = 0; i < characterPool.Count; i++)
+        {
+            CharacterType temp = characterPool[i];
+            int randomIndex = Random.Range(i, characterPool.Count);
+            characterPool[i] = characterPool[randomIndex];
+            characterPool[randomIndex] = temp;
+        }
+
+        // 3. ìºë¦­í„° ìƒì„± ë° ë°°ì¹˜ (ì•ˆì „ì„± ê°•í™”)
+        int poolIndex = 0;
+        for (int i = 0; i < stageData.activeLines; i++)
+        {
+            LineController line = mainLines[i];
+
+            // ê° ë¼ì¸ì˜ Slot_0 ~ Slot_3ì— ë°°ì¹˜
+            for (int j = 0; j < 4; j++)
+            {
+                if (poolIndex >= characterPool.Count) break;
+
+                Slot targetSlot = line.slots[j];
+                if (targetSlot == null) continue;
+
+                CharacterType currentType = characterPool[poolIndex];
+                GameObject prefab = prefabSet.GetPrefab(currentType);
+
+                if (prefab != null)
+                {
+                    // [ë³€ê²½ì ] ì¼ë‹¨ ë¶€ëª¨ ì—†ì´ ì›”ë“œ ì¢Œí‘œ ê¸°ë³¸ê°’(0,0,0)ìœ¼ë¡œ ì•ˆì „í•˜ê²Œ ìƒì„±í•©ë‹ˆë‹¤.
+                    GameObject characterGo = Instantiate(prefab, Vector3.zero, Quaternion.identity);
+                    characterGo.name = currentType.ToString() + $"_{i}_{j}";
+
+                    // ìƒì„± ì§í›„ ë¶€ëª¨ë¥¼ CharacterGroupìœ¼ë¡œ ê°•ì œ ì§€ì •í•©ë‹ˆë‹¤.
+                    if (characterParent != null)
+                    {
+                        characterGo.transform.SetParent(characterParent);
+                    }
+
+                    // ìŠ¤í¬ë¦½íŠ¸ ì²´í¬ ë° ê°•ì œ ì¶”ê°€ ë°©ì–´ì„ 
+                    CharacterPiece piece = characterGo.GetComponent<CharacterPiece>();
+                    if (piece == null)
+                    {
+                        piece = characterGo.AddComponent<CharacterPiece>();
+                    }
+
+                    piece.characterType = currentType;
+
+                    // ìŠ¬ë¡¯ì— ë°ì´í„° ë“±ë¡ ë° ìŠ¬ë¡¯ì˜ ì¢Œí‘œë¡œ ë¬¼ë¦¬ì  ì´ë™
+                    piece.InitSetup(targetSlot);
+                }
+
+                poolIndex++;
+            }
+        }
+
+        Debug.Log($"[ê²€ì¦ ì™„ë£Œ] ì´ {poolIndex}ê°œì˜ ìºë¦­í„° ì˜¤ë¸Œì íŠ¸ê°€ ê³„ì¸µ êµ¬ì¡°ì— ë°°ì¹˜ë˜ì—ˆìŠµë‹ˆë‹¤.");
     }
 }

@@ -1,16 +1,16 @@
-using UnityEngine;
-using TMPro; // TextMeshPro »ç¿ë ÇÊ¼ö
+ï»¿using UnityEngine;
+using TMPro; // TextMeshPro ì‚¬ìš© í•„ìˆ˜
 
 public class UIManager : MonoBehaviour
 {
-    [Header("[ TMP ÅØ½ºÆ® ÄÄÆ÷³ÍÆ® ¿¬°á ]")]
-    public TextMeshProUGUI stageText;       // »ó´Ü ½ºÅ×ÀÌÁö Ç¥½Ã¿ë Text
-    public TextMeshProUGUI timerText;       // ³²Àº ½Ã°£ Ç¥½Ã¿ë Text
-    public TextMeshProUGUI resultStatusText;// °ÔÀÓ ¿À¹ö / Å¬¸®¾î ÆË¾÷¿ë Text
+    [Header("[ TMP í…ìŠ¤íŠ¸ ì»´í¬ë„ŒíŠ¸ ì—°ê²° ]")]
+    public TextMeshProUGUI stageText;       // ìƒë‹¨ ìŠ¤í…Œì´ì§€ í‘œì‹œìš© Text
+    public TextMeshProUGUI timerText;       // ë‚¨ì€ ì‹œê°„ í‘œì‹œìš© Text
+    public TextMeshProUGUI resultStatusText;// ê²Œì„ ì˜¤ë²„ / í´ë¦¬ì–´ íŒì—…ìš© Text
 
     private void Awake()
     {
-        // °ÔÀÓ ½ÃÀÛ ½Ã °á°úÃ¢ ÅØ½ºÆ® ºñ¿öµÎ±â
+        // ê²Œì„ ì‹œì‘ ì‹œ ê²°ê³¼ì°½ í…ìŠ¤íŠ¸ ë¹„ì›Œë‘ê¸°
         if (resultStatusText != null)
             resultStatusText.text = "";
     }
@@ -25,7 +25,7 @@ public class UIManager : MonoBehaviour
     {
         if (timerText != null)
         {
-            // ¼Ò¼öÁ¡ Ã¹Â° ÀÚ¸®±îÁö¸¸ Æ÷¸ËÆÃÇÏ¿© ³ëÃâ (¿¹: 90.0s)
+            // ì†Œìˆ˜ì  ì²«ì§¸ ìë¦¬ê¹Œì§€ë§Œ í¬ë§·íŒ…í•˜ì—¬ ë…¸ì¶œ (ì˜ˆ: 90.0s)
             timerText.text = $"TIME: {time:F1}s";
         }
     }

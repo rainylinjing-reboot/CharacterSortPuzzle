@@ -55,6 +55,8 @@ public class GameManager : MonoBehaviour
     {
         if (currentStageData == null || boardManager == null || uiManager == null) return;
 
+        ClearSelectedCharacter();
+
         // [중요] 다음 스테이지 소환 전, 보드 위에 남아있던 이전 판 캐릭터들을 완벽히 청소합니다.
         ClearExistingCharacters();
 
@@ -107,14 +109,14 @@ public class GameManager : MonoBehaviour
         {
             GameObject hitObject = hit.collider.gameObject;
 
-            CharacterPiece clickedCharacter = hitObject.GetComponent<CharacterPiece>();
+            CharacterPiece clickedCharacter = hitObject.GetComponentInParent<CharacterPiece>();
             if (clickedCharacter != null)
             {
                 ProcessCharacterClick(clickedCharacter);
                 return;
             }
 
-            Slot clickedSlot = hitObject.GetComponent<Slot>();
+            Slot clickedSlot = hitObject.GetComponentInParent<Slot>();
             if (clickedSlot != null)
             {
                 ProcessSlotClick(clickedSlot);
@@ -135,7 +137,7 @@ public class GameManager : MonoBehaviour
 
         if (clickedPiece == topPiece)
         {
-            selectedCharacter = clickedPiece;
+            SetSelectedCharacter(clickedPiece);
             Debug.Log($"✅ [선택 완료] '{clickedPiece.characterType}' 달릴 준비 완료!");
         }
     }
@@ -186,7 +188,7 @@ public class GameManager : MonoBehaviour
             }
 
             selectedCharacter.MoveAlongPath(calculatedPath);
-            selectedCharacter = null;
+            ClearSelectedCharacter();
 
             CancelInvoke("CheckStageClearCondition");
             Invoke("CheckStageClearCondition", 1.2f);
@@ -276,6 +278,7 @@ public class GameManager : MonoBehaviour
     private void AllStageClear()
     {
         isGameActive = false;
+        ClearSelectedCharacter();
         if (uiManager != null) uiManager.ShowResultText("ALL STAGES CLEAR!");
         Debug.Log("🏆🏆🏆 대단합니다! 준비된 모든 스테이지를 완벽하게 클리어하셨습니다! 최종 승리! 🏆🏆🏆");
     }
@@ -293,6 +296,34 @@ public class GameManager : MonoBehaviour
     private void GameOver()
     {
         isGameActive = false;
+        ClearSelectedCharacter();
         if (uiManager != null) uiManager.ShowResultText("GAME OVER");
+    }
+
+    private void SetSelectedCharacter(CharacterPiece character)
+    {
+        if (selectedCharacter == character)
+        {
+            selectedCharacter.SetSelectedOutline(true);
+            return;
+        }
+
+        ClearSelectedCharacter();
+
+        selectedCharacter = character;
+        if (selectedCharacter != null)
+        {
+            selectedCharacter.SetSelectedOutline(true);
+        }
+    }
+
+    private void ClearSelectedCharacter()
+    {
+        if (selectedCharacter != null)
+        {
+            selectedCharacter.SetSelectedOutline(false);
+        }
+
+        selectedCharacter = null;
     }
 }

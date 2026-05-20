@@ -12,6 +12,9 @@ public class CharacterPiece : MonoBehaviour
     public float rotationSpeed = 15f;
     public string runParameterName = "IsRunning";
 
+    [Header("[ 선택 아웃라인 설정 ]")]
+    [SerializeField] private uint selectedOutlineLayer = 1u << 1; // Light Layer 1
+
     [HideInInspector] public Animator animator;
 
     // 경로 이동 제어용 변수들
@@ -19,6 +22,8 @@ public class CharacterPiece : MonoBehaviour
     private int currentPathIndex = 0;                     // 현재 가고 있는 주소 인덱스
     private bool isMoving = false;
     private Camera mainCamera;
+    private Renderer[] cachedRenderers;
+    private uint[] originalRenderingLayers;
 
     public bool IsMoving => isMoving;
 
@@ -27,6 +32,7 @@ public class CharacterPiece : MonoBehaviour
         animator = GetComponent<Animator>();
         if (animator == null) animator = GetComponentInChildren<Animator>();
         mainCamera = Camera.main;
+        CacheRenderers();
     }
 
     private void Update()
@@ -79,6 +85,8 @@ public class CharacterPiece : MonoBehaviour
     {
         if (pathSlots == null || pathSlots.Count == 0) return;
 
+        SetSelectedOutline(false);
+
         // 기존 슬롯 데이터 정리
         if (currentSlot != null) currentSlot.ClearSlot();
 
@@ -117,6 +125,33 @@ public class CharacterPiece : MonoBehaviour
 
         // 카메라 정면 응시
         LookAtCameraInstantly();
+    }
+
+    public void SetSelectedOutline(bool selected)
+    {
+        CacheRenderers();
+
+        for (int i = 0; i < cachedRenderers.Length; i++)
+        {
+            if (cachedRenderers[i] == null) continue;
+
+            cachedRenderers[i].renderingLayerMask = selected
+                ? originalRenderingLayers[i] | selectedOutlineLayer
+                : originalRenderingLayers[i];
+        }
+    }
+
+    private void CacheRenderers()
+    {
+        if (cachedRenderers != null && originalRenderingLayers != null) return;
+
+        cachedRenderers = GetComponentsInChildren<Renderer>(true);
+        originalRenderingLayers = new uint[cachedRenderers.Length];
+
+        for (int i = 0; i < cachedRenderers.Length; i++)
+        {
+            originalRenderingLayers[i] = cachedRenderers[i].renderingLayerMask;
+        }
     }
 
     private void LookAtCameraInstantly()

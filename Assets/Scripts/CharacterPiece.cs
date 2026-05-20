@@ -112,20 +112,22 @@ public class CharacterPiece : MonoBehaviour
         }
     }
 
-    private void ArriveAtDestination()
+private void ArriveAtDestination()
+{
+    isMoving = false;
+    movePath.Clear();
+
+    if (animator != null) animator.SetBool(runParameterName, false);
+    LookAtCameraInstantly();
+
+    // 🎯 [수정] 자리에 안착했으니 게임 매니저에게 승리 판정 즉시 돌려달라고 신호 발송!
+    GameManager gameManager = FindFirstObjectByType<GameManager>();
+    if (gameManager != null)
     {
-        isMoving = false;
-        movePath.Clear();
-
-        // IDLE 애니메이션으로 복구
-        if (animator != null)
-        {
-            animator.SetBool(runParameterName, false);
-        }
-
-        // 카메라 정면 응시
-        LookAtCameraInstantly();
+        // Invoke 예약 대신 다이렉트 함수로 즉시 검사 요청
+        gameManager.CheckStageClearConditionDirect(); 
     }
+}
 
     public void SetSelectedOutline(bool selected)
     {

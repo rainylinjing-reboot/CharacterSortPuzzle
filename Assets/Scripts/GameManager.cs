@@ -190,8 +190,9 @@ public class GameManager : MonoBehaviour
             selectedCharacter.MoveAlongPath(calculatedPath);
             ClearSelectedCharacter();
 
-            CancelInvoke("CheckStageClearCondition");
-            Invoke("CheckStageClearCondition", 1.2f);
+            //CancelInvoke("CheckStageClearCondition");
+            //Invoke("CheckStageClearCondition", 1.2f);
+            
         }
     }
 
@@ -325,5 +326,12 @@ public class GameManager : MonoBehaviour
         }
 
         selectedCharacter = null;
+    }
+
+    // 캐릭터들이 도착할 때마다 다이렉트로 찔러주는 승리 판정 함수
+    public void CheckStageClearConditionDirect()
+    {
+    // 기존에 짜두신 체크 로직을 타이밍 낭비 없이 실시간 즉시 실행합니다!
+    CheckStageClearCondition();
     }
 }

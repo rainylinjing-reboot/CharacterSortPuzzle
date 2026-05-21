@@ -10,34 +10,28 @@ public class GameManager : MonoBehaviour
     public UIManager uiManager;
 
     [Header("[ 스테이지 레벨 데이터 관리 ]")]
-    public StageData[] allStages;       // 스테이지 데이터들을 순서대로 넣어둘 배열
-    private int currentStageIndex = 0;   // 현재 진행 중인 스테이지 배열 인덱스 (0부터 시작)
+    public StageData[] allStages;       
+    private int currentStageIndex = 0;   
 
     [Header("[ 조작 상태 변수 ]")]
     public CharacterPiece selectedCharacter = null;
 
-    private StageData currentStageData; // 현재 활성화된 스테이지 실제 데이터
+    private StageData currentStageData; 
     private float timeRemaining;
     private bool isGameActive = false;
+    private bool isGiveUpConfirming = false; // [1단계] 현재 항복 확인 창이 켜져 있는지 여부
     private Camera mainCamera;
 
     private void Start()
     {
         mainCamera = Camera.main;
-
-        // 첫 번째 스테이지로 인덱스 설정 후 시작
         currentStageIndex = 0;
         LoadStage(currentStageIndex);
     }
 
-    // 특정 인덱스의 스테이지 데이터를 로드하는 함수
     public void LoadStage(int index)
     {
-        if (allStages == null || allStages.Length == 0)
-        {
-            Debug.LogError("🚨 GameManager에 StageData가 등록되지 않았습니다! 인스펙터를 확인해 주세요.");
-            return;
-        }
+        if (allStages == null || allStages.Length == 0) return;
 
         if (index < allStages.Length)
         {
@@ -46,7 +40,6 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            // 배열 범위를 벗어났다면 준비된 모든 스테이지를 다 정복한 상태!
             AllStageClear();
         }
     }
@@ -55,28 +48,44 @@ public class GameManager : MonoBehaviour
     {
         if (currentStageData == null || boardManager == null || uiManager == null) return;
 
-        ClearSelectedCharacter();
+        // 게임 일시정지 상태가 있을 수 있으므로 시간 축 정상화
+        Time.timeScale = 1f;
+        isGiveUpConfirming = false;
+        if (uiManager != null) uiManager.SetGiveUpPopupActive(false);
 
-        // [중요] 다음 스테이지 소환 전, 보드 위에 남아있던 이전 판 캐릭터들을 완벽히 청소합니다.
+        ClearSelectedCharacter();
         ClearExistingCharacters();
 
-        // 새 스테이지 세팅 및 스폰
         boardManager.SetupBoard(currentStageData);
         boardManager.SpawnCharacters(currentStageData);
 
-        // 타이머 및 UI 세팅
         timeRemaining = currentStageData.timeLimit;
         uiManager.UpdateStageText(currentStageData.stageNumber);
         uiManager.UpdateTimerText(timeRemaining);
         uiManager.ShowResultText("");
 
-        selectedCharacter = null;
         isGameActive = true;
-        Debug.Log($"🎮 [스테이지 시작] Stage {currentStageData.stageNumber} 가 활성화되었습니다!");
+
+        // 🔊 [사운드] 게임 시작 효과음 발동 (안전지대 탑재)
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.startClip);
+            SoundManager.Instance.PlayBGM(); // 혹시 꺼졌을지 모를 BGM 재개
+        }
     }
 
     private void Update()
     {
+        // 🚨 [1단계 추가] 항복 확인 상태에서 키보드 'Y' 누르면 즉시 리스타트 발동!
+        if (isGiveUpConfirming)
+        {
+            if (Keyboard.current != null && Keyboard.current.yKey.wasPressedThisFrame)
+            {
+                ConfirmGiveUpAndRestart();
+                return;
+            }
+        }
+
         if (!isGameActive) return;
 
         if (timeRemaining > 0)
@@ -97,9 +106,47 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // 🚨 [1단계 추가] UI 항복 버튼을 누르면 실행되는 함수
+    public void ClickGiveUpButton()
+    {
+        if (!isGameActive || isGiveUpConfirming) return;
+
+        // 🔊 [사운드] 클릭 효과음
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickClip);
+
+        isGiveUpConfirming = true;
+        Time.timeScale = 0f; // 게임 속도를 0으로 만들어 타이머와 조작을 일시 중지!
+        
+        if (uiManager != null)
+        {
+            uiManager.SetGiveUpPopupActive(true); // 항복 알림 팝업창 켜기
+        }
+        Debug.Log("🏳️ 항복하시겠습니까? 확인 창 활성화. [Y] 키를 누르면 리스타트됩니다.");
+    }
+
+    // 🚨 [1단계 추가] 팝업창에서 취소(창 닫기)를 눌렀을 때
+    public void CancelGiveUp()
+    {
+        // 🔊 [사운드] 클릭 효과음
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickClip);
+
+        isGiveUpConfirming = false;
+        Time.timeScale = 1f; // 게임 속도를 다시 원래대로 복구!
+        
+        if (uiManager != null) uiManager.SetGiveUpPopupActive(false);
+    }
+
+    // 🚨 [1단계 추가] 항복 수락 (Y키 또는 확인 버튼 클릭 시) 실제 초기화 작동
+    public void ConfirmGiveUpAndRestart()
+    {
+        Debug.Log("🔄 항복 수락됨. 현재 스테이지를 처음부터 다시 시작합니다.");
+        // 현재 진행 중이던 스테이지 인덱스를 그대로 넘겨 판을 리셋합니다.
+        LoadStage(currentStageIndex);
+    }
+
     private void HandleMouseClick()
     {
-        if (mainCamera == null) return;
+        if (mainCamera == null || isGiveUpConfirming) return;
 
         Vector2 mousePosition = Pointer.current.position.ReadValue();
         Ray ray = mainCamera.ScreenPointToRay(mousePosition);
@@ -137,6 +184,9 @@ public class GameManager : MonoBehaviour
 
         if (clickedPiece == topPiece)
         {
+            // 🔊 [사운드] 캐릭터 선택 성공 클릭음 재생
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickClip);
+
             SetSelectedCharacter(clickedPiece);
             Debug.Log($"✅ [선택 완료] '{clickedPiece.characterType}' 달릴 준비 완료!");
         }
@@ -149,16 +199,15 @@ public class GameManager : MonoBehaviour
         LineController startLine = selectedCharacter.currentSlot.ownerLine;
         LineController targetLine = clickedSlot.ownerLine;
 
-        if (startLine == targetLine)
-        {
-            Debug.LogWarning("⚠️ [조작 거부] 같은 줄 내부로는 이동할 수 없습니다!");
-            return;
-        }
+        if (startLine == targetLine) return;
 
         Slot realTargetSlot = targetLine.GetFirstEmptySlot();
 
         if (realTargetSlot != null)
         {
+            // 🔊 [사운드] 목적지 빈 슬롯 클릭 성공음 재생
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickClip);
+
             List<Slot> calculatedPath = new List<Slot>();
 
             int exitGateIndex = 4;
@@ -190,21 +239,16 @@ public class GameManager : MonoBehaviour
             selectedCharacter.MoveAlongPath(calculatedPath);
             ClearSelectedCharacter();
 
-            //CancelInvoke("CheckStageClearCondition");
-            //Invoke("CheckStageClearCondition", 1.2f);
-            
+            // 도착 프레임 직접 검증 방식으로 6차 변경 완료했으므로 Invoke 줄은 삭제 유지!
         }
     }
 
-    private void CheckStageClearCondition()
+    // 캐릭터들이 목적지에 안착했을 때 직접 찔러주는 무결점 성공 판정 함수
+    public void CheckStageClearConditionDirect()
     {
         if (!isGameActive) return;
 
-        if (AnyCharacterMoving())
-        {
-            Invoke("CheckStageClearCondition", 0.5f);
-            return;
-        }
+        if (AnyCharacterMoving()) return;
 
         if (boardManager.waitingLine != null)
         {
@@ -228,29 +272,28 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // 통과 시 코루틴을 활용한 스테이지 클리어 연출 및 로드 진행
         StartCoroutine(StageClearRoutine());
     }
 
-    // [핵심 추가] 스테이지 클리어 연출 및 자동 다음 스테이지 전환 코루틴
     private IEnumerator StageClearRoutine()
     {
-        isGameActive = false; // 조작 및 타이머 일시 정지
+        isGameActive = false; 
+
+        // 🔊 [사운드] 스테이지 클리어 대성공 사운드 재생 + BGM 잠시 뮤트
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.StopBGM();
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.clearClip);
+        }
 
         if (uiManager != null) uiManager.ShowResultText("STAGE CLEAR!");
-        Debug.Log("🎉 스테이지 클리어! 잠시 후 다음 스테이지로 전환됩니다.");
-
-        // 플레이어가 승리의 기쁨을 만끽하고 UI를 볼 수 있도록 2.5초간 대기합니다.
+        
         yield return new WaitForSeconds(2.5f);
 
-        // 다음 스테이지로 인덱스 1 증가
         currentStageIndex++;
-
-        // 다음 스테이지 로드 호출
         LoadStage(currentStageIndex);
     }
 
-    // 보드 위의 구형 캐릭터들을 삭제해 주는 청소 함수
     private void ClearExistingCharacters()
     {
         CharacterPiece[] existingPieces = FindObjectsByType<CharacterPiece>(FindObjectsSortMode.None);
@@ -259,7 +302,6 @@ public class GameManager : MonoBehaviour
             Destroy(piece.gameObject);
         }
 
-        // 모든 슬롯의 연결 데이터도 깨끗하게 리셋
         if (boardManager != null)
         {
             foreach (var line in boardManager.mainLines)
@@ -280,8 +322,11 @@ public class GameManager : MonoBehaviour
     {
         isGameActive = false;
         ClearSelectedCharacter();
+        
+        // 🔊 [사운드] 최종 올 클리어 시에도 축하 효과음 발동
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clearClip);
+
         if (uiManager != null) uiManager.ShowResultText("ALL STAGES CLEAR!");
-        Debug.Log("🏆🏆🏆 대단합니다! 준비된 모든 스테이지를 완벽하게 클리어하셨습니다! 최종 승리! 🏆🏆🏆");
     }
 
     private bool AnyCharacterMoving()
@@ -298,6 +343,14 @@ public class GameManager : MonoBehaviour
     {
         isGameActive = false;
         ClearSelectedCharacter();
+
+        // 🔊 [사운드] 게임 오버 실패 사운드 재생 및 BGM 정지
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.StopBGM();
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.failClip);
+        }
+
         if (uiManager != null) uiManager.ShowResultText("GAME OVER");
     }
 
@@ -308,30 +361,14 @@ public class GameManager : MonoBehaviour
             selectedCharacter.SetSelectedOutline(true);
             return;
         }
-
         ClearSelectedCharacter();
-
         selectedCharacter = character;
-        if (selectedCharacter != null)
-        {
-            selectedCharacter.SetSelectedOutline(true);
-        }
+        if (selectedCharacter != null) selectedCharacter.SetSelectedOutline(true);
     }
 
     private void ClearSelectedCharacter()
     {
-        if (selectedCharacter != null)
-        {
-            selectedCharacter.SetSelectedOutline(false);
-        }
-
+        if (selectedCharacter != null) selectedCharacter.SetSelectedOutline(false);
         selectedCharacter = null;
-    }
-
-    // 캐릭터들이 도착할 때마다 다이렉트로 찔러주는 승리 판정 함수
-    public void CheckStageClearConditionDirect()
-    {
-    // 기존에 짜두신 체크 로직을 타이밍 낭비 없이 실시간 즉시 실행합니다!
-    CheckStageClearCondition();
     }
 }

@@ -19,7 +19,7 @@ public class GameManager : MonoBehaviour
     private StageData currentStageData; 
     private float timeRemaining;
     private bool isGameActive = false;
-    private bool isGiveUpConfirming = false; // [1단계] 현재 항복 확인 창이 켜져 있는지 여부
+    private bool isGiveUpConfirming = false; 
     private Camera mainCamera;
 
     private void Start()
@@ -48,7 +48,6 @@ public class GameManager : MonoBehaviour
     {
         if (currentStageData == null || boardManager == null || uiManager == null) return;
 
-        // 게임 일시정지 상태가 있을 수 있으므로 시간 축 정상화
         Time.timeScale = 1f;
         isGiveUpConfirming = false;
         if (uiManager != null) uiManager.SetGiveUpPopupActive(false);
@@ -66,17 +65,15 @@ public class GameManager : MonoBehaviour
 
         isGameActive = true;
 
-        // 🔊 [사운드] 게임 시작 효과음 발동 (안전지대 탑재)
         if (SoundManager.Instance != null)
         {
             SoundManager.Instance.PlaySFX(SoundManager.Instance.startClip);
-            SoundManager.Instance.PlayBGM(); // 혹시 꺼졌을지 모를 BGM 재개
+            SoundManager.Instance.PlayBGM(); 
         }
     }
 
     private void Update()
     {
-        // 🚨 [1단계 추가] 항복 확인 상태에서 키보드 'Y' 누르면 즉시 리스타트 발동!
         if (isGiveUpConfirming)
         {
             if (Keyboard.current != null && Keyboard.current.yKey.wasPressedThisFrame)
@@ -106,42 +103,39 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // 🚨 [1단계 추가] UI 항복 버튼을 누르면 실행되는 함수
     public void ClickGiveUpButton()
     {
         if (!isGameActive || isGiveUpConfirming) return;
 
-        // 🔊 [사운드] 클릭 효과음
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickClip);
 
         isGiveUpConfirming = true;
-        Time.timeScale = 0f; // 게임 속도를 0으로 만들어 타이머와 조작을 일시 중지!
+        Time.timeScale = 0f; 
         
-        if (uiManager != null)
-        {
-            uiManager.SetGiveUpPopupActive(true); // 항복 알림 팝업창 켜기
-        }
-        Debug.Log("🏳️ 항복하시겠습니까? 확인 창 활성화. [Y] 키를 누르면 리스타트됩니다.");
+        if (uiManager != null) uiManager.SetGiveUpPopupActive(true); 
     }
 
-    // 🚨 [1단계 추가] 팝업창에서 취소(창 닫기)를 눌렀을 때
     public void CancelGiveUp()
     {
-        // 🔊 [사운드] 클릭 효과음
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickClip);
 
         isGiveUpConfirming = false;
-        Time.timeScale = 1f; // 게임 속도를 다시 원래대로 복구!
+        Time.timeScale = 1f; 
         
         if (uiManager != null) uiManager.SetGiveUpPopupActive(false);
     }
 
-    // 🚨 [1단계 추가] 항복 수락 (Y키 또는 확인 버튼 클릭 시) 실제 초기화 작동
     public void ConfirmGiveUpAndRestart()
     {
-        Debug.Log("🔄 항복 수락됨. 현재 스테이지를 처음부터 다시 시작합니다.");
-        // 현재 진행 중이던 스테이지 인덱스를 그대로 넘겨 판을 리셋합니다.
         LoadStage(currentStageIndex);
+    }
+
+    // 마우스 클릭 랭킹 확정용 추가
+    public void ClickConfirmGiveUpButton()
+    {
+        if (!isGiveUpConfirming) return;
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickClip);
+        ConfirmGiveUpAndRestart();
     }
 
     private void HandleMouseClick()
@@ -184,11 +178,8 @@ public class GameManager : MonoBehaviour
 
         if (clickedPiece == topPiece)
         {
-            // 🔊 [사운드] 캐릭터 선택 성공 클릭음 재생
             if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickClip);
-
             SetSelectedCharacter(clickedPiece);
-            Debug.Log($"✅ [선택 완료] '{clickedPiece.characterType}' 달릴 준비 완료!");
         }
     }
 
@@ -205,7 +196,6 @@ public class GameManager : MonoBehaviour
 
         if (realTargetSlot != null)
         {
-            // 🔊 [사운드] 목적지 빈 슬롯 클릭 성공음 재생
             if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clickClip);
 
             List<Slot> calculatedPath = new List<Slot>();
@@ -238,16 +228,12 @@ public class GameManager : MonoBehaviour
 
             selectedCharacter.MoveAlongPath(calculatedPath);
             ClearSelectedCharacter();
-
-            // 도착 프레임 직접 검증 방식으로 6차 변경 완료했으므로 Invoke 줄은 삭제 유지!
         }
     }
 
-    // 캐릭터들이 목적지에 안착했을 때 직접 찔러주는 무결점 성공 판정 함수
     public void CheckStageClearConditionDirect()
     {
         if (!isGameActive) return;
-
         if (AnyCharacterMoving()) return;
 
         if (boardManager.waitingLine != null)
@@ -279,7 +265,6 @@ public class GameManager : MonoBehaviour
     {
         isGameActive = false; 
 
-        // 🔊 [사운드] 스테이지 클리어 대성공 사운드 재생 + BGM 잠시 뮤트
         if (SoundManager.Instance != null)
         {
             SoundManager.Instance.StopBGM();
@@ -323,10 +308,12 @@ public class GameManager : MonoBehaviour
         isGameActive = false;
         ClearSelectedCharacter();
         
-        // 🔊 [사운드] 최종 올 클리어 시에도 축하 효과음 발동
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clearClip);
-
         if (uiManager != null) uiManager.ShowResultText("ALL STAGES CLEAR!");
+
+        // 🎯 모든 스테이지 정복 시 최종 명예의 전당 입력창 활성화!
+        float totalTakenTime = currentStageData.timeLimit - timeRemaining;
+        if (uiManager != null) uiManager.OpenLeaderboardInput(currentStageData.stageNumber, totalTakenTime);
     }
 
     private bool AnyCharacterMoving()
@@ -344,7 +331,6 @@ public class GameManager : MonoBehaviour
         isGameActive = false;
         ClearSelectedCharacter();
 
-        // 🔊 [사운드] 게임 오버 실패 사운드 재생 및 BGM 정지
         if (SoundManager.Instance != null)
         {
             SoundManager.Instance.StopBGM();
@@ -352,6 +338,10 @@ public class GameManager : MonoBehaviour
         }
 
         if (uiManager != null) uiManager.ShowResultText("GAME OVER");
+
+        // 🎯 실패해서 게임오버 되었을 때도 그때까지 기록을 명예의 전당에 백업 유도!
+        float takenTime = currentStageData.timeLimit - timeRemaining;
+        if (uiManager != null) uiManager.OpenLeaderboardInput(currentStageIndex + 1, takenTime);
     }
 
     private void SetSelectedCharacter(CharacterPiece character)

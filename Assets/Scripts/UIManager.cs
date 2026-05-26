@@ -30,6 +30,7 @@ public class UIManager : MonoBehaviour
     [Header("[ 리트라이 버튼 오브젝트 제어 ]")]
     public GameObject reStartButtonObject; 
 
+    private LeaderboardManager leaderboardManager;
     private int cachedFinalStage = 1;
     private float cachedTakenTime = 0f;
 
@@ -44,6 +45,12 @@ public class UIManager : MonoBehaviour
         }
 
         ClearCountdownText();
+
+        leaderboardManager = FindFirstObjectByType<LeaderboardManager>();
+        if (leaderboardManager == null)
+        {
+            leaderboardManager = gameObject.AddComponent<LeaderboardManager>();
+        }
     }
 
     private void Start()
@@ -59,7 +66,7 @@ public class UIManager : MonoBehaviour
 
     public void UpdateTimerText(float timeRemaining)
     {
-        if (timerText != null) timerText.text = $"TIME: {timeRemaining:F1}s";
+        if (timerText != null) timerText.text = $"{timeRemaining:F1}s";
     }
 
     public void ShowResultText(string message)
@@ -108,6 +115,11 @@ public class UIManager : MonoBehaviour
         cachedFinalStage = finalStage;
         cachedTakenTime = takenTime;
 
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlayRankingBGM();
+        }
+
         if (leaderboardPanel != null) leaderboardPanel.SetActive(true);
         if (reStartButtonObject != null) reStartButtonObject.SetActive(false);
 
@@ -137,6 +149,8 @@ public class UIManager : MonoBehaviour
     {
         if (nameInputField == null || string.IsNullOrEmpty(nameInputField.text)) return;
 
+        PlayClickSound();
+
         string playerName = nameInputField.text.Trim();
         Debug.Log($"💾 명예의 전당 데이터 등록 시도: {playerName}");
 
@@ -149,23 +163,21 @@ public class UIManager : MonoBehaviour
             congratulationText.gameObject.SetActive(false);
         }
 
-        LeaderboardManager lm = FindFirstObjectByType<LeaderboardManager>();
-        if (lm != null)
+        if (leaderboardManager == null)
         {
-            lm.AddNewRecord(playerName, cachedFinalStage, cachedTakenTime);
-            UpdateLeaderboardDisplay(lm.GetLeaderboard());
+            leaderboardManager = gameObject.AddComponent<LeaderboardManager>();
         }
-        else
-        {
-            List<LeaderboardEntry> tempList = new List<LeaderboardEntry> { new LeaderboardEntry(playerName, cachedFinalStage, cachedTakenTime) };
-            UpdateLeaderboardDisplay(tempList);
-        }
+
+        leaderboardManager.AddNewRecord(playerName, cachedFinalStage, cachedTakenTime);
+        UpdateLeaderboardDisplay(leaderboardManager.GetLeaderboard());
 
         if (reStartButtonObject != null) reStartButtonObject.SetActive(true);
     }
 
     public void OnClickRetryGame()
     {
+        PlayClickSound();
+
         Time.timeScale = 1f;
 
         GameManager gm = FindFirstObjectByType<GameManager>();
@@ -181,6 +193,14 @@ public class UIManager : MonoBehaviour
         CloseLeaderboardInput();
     }
 
+    private void PlayClickSound()
+    {
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.clickClip);
+        }
+    }
+
     private void UpdateLeaderboardDisplay(List<LeaderboardEntry> list)
     {
         if (leaderboardContentText == null) return;
@@ -194,7 +214,7 @@ public class UIManager : MonoBehaviour
         StringBuilder sb = new StringBuilder();
         
         sb.AppendLine("RANK<pos=180>NAME<pos=450>STAGE<pos=700>TIME");
-        sb.AppendLine("------------------------------------------------------------------------");
+        sb.AppendLine("--------------------------------------------");
 
         for (int i = 0; i < list.Count; i++)
         {

@@ -44,6 +44,32 @@ public class GameManager : MonoBehaviour
         stageLoadCoroutine = StartCoroutine(LoadStageRoutine(index));
     }
 
+    public void LoadStageDirectFromIntro(int index)
+    {
+        if (stageLoadCoroutine != null)
+        {
+            StopCoroutine(stageLoadCoroutine);
+            stageLoadCoroutine = null;
+        }
+
+        if (allStages == null || allStages.Length == 0) return;
+
+        if (index < allStages.Length)
+        {
+            currentStageIndex = index;
+            currentStageData = allStages[index];
+
+            if (InitializeGame())
+            {
+                StartCurrentStage();
+            }
+        }
+        else
+        {
+            AllStageClear();
+        }
+    }
+
     private IEnumerator LoadStageRoutine(int index)
     {
         if (allStages == null || allStages.Length == 0)
@@ -85,6 +111,11 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1f;
         isGameActive = false;
         isGiveUpConfirming = false;
+
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.StopBGM();
+        }
         
         if (uiManager != null) 
         {
@@ -112,7 +143,7 @@ public class GameManager : MonoBehaviour
         if (SoundManager.Instance != null)
         {
             SoundManager.Instance.PlaySFX(SoundManager.Instance.startClip);
-            SoundManager.Instance.PlayBGM(); 
+            SoundManager.Instance.PlayStageBGM(currentStageData.stageNumber);
         }
     }
 

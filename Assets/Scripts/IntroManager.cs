@@ -20,6 +20,8 @@ public class IntroManager : MonoBehaviour
         if (countdownText != null) countdownText.text = "";
         if (introPanel != null) introPanel.SetActive(true);
 
+        if (SoundManager.Instance != null) SoundManager.Instance.PlayIntroBGM();
+
         if (gameManager != null && boardManager != null && gameManager.allStages.Length > 0)
         {
             StageData introPreviewStage = gameManager.allStages[0];

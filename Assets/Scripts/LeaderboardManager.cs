@@ -38,9 +38,19 @@ public class LeaderboardManager : MonoBehaviour
         }
 
         string json = PlayerPrefs.GetString(SAVE_KEY);
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return new List<LeaderboardEntry>();
+        }
+
         // 💡 여기도 바뀐 클래스명으로 정렬 변환합니다.
         PuzzleLeaderboardWrapper data = JsonUtility.FromJson<PuzzleLeaderboardWrapper>(json);
-        return data.entries ?? new List<LeaderboardEntry>();
+        if (data == null || data.entries == null)
+        {
+            return new List<LeaderboardEntry>();
+        }
+
+        return data.entries;
     }
 
     // 새 기록 추가 및 상위 10명 정렬 저장 함수

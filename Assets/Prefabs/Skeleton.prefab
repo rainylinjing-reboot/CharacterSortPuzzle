@@ -107,6 +107,7 @@ MonoBehaviour:
   moveSpeed: 5
   rotationSpeed: 10
   runParameterName: IsRunning
+  selectedOutlineLayer: 2
   animator: {fileID: 0}
 --- !u!65 &5669520917574417599
 BoxCollider:

@@ -21,36 +21,75 @@ public class GameManager : MonoBehaviour
     private bool isGameActive = false;
     private bool isGiveUpConfirming = false; 
     private Camera mainCamera;
+    private Coroutine stageLoadCoroutine;
 
     private void Start()
     {
         mainCamera = Camera.main;
         currentStageIndex = 0;
-        LoadStage(currentStageIndex);
     }
 
     public void LoadStage(int index)
     {
-        if (allStages == null || allStages.Length == 0) return;
+        if (stageLoadCoroutine != null)
+        {
+            StopCoroutine(stageLoadCoroutine);
+        }
+
+        if (uiManager != null)
+        {
+            uiManager.ClearCountdownText();
+        }
+
+        stageLoadCoroutine = StartCoroutine(LoadStageRoutine(index));
+    }
+
+    private IEnumerator LoadStageRoutine(int index)
+    {
+        if (allStages == null || allStages.Length == 0)
+        {
+            stageLoadCoroutine = null;
+            yield break;
+        }
 
         if (index < allStages.Length)
         {
+            currentStageIndex = index;
             currentStageData = allStages[index];
-            InitializeGame();
+
+            if (!InitializeGame())
+            {
+                stageLoadCoroutine = null;
+                yield break;
+            }
+
+            if (uiManager != null)
+            {
+                yield return uiManager.PlayCountdownRoutine();
+            }
+
+            StartCurrentStage();
         }
         else
         {
             AllStageClear();
         }
+
+        stageLoadCoroutine = null;
     }
 
-    private void InitializeGame()
+    private bool InitializeGame()
     {
-        if (currentStageData == null || boardManager == null || uiManager == null) return;
+        if (currentStageData == null || boardManager == null || uiManager == null) return false;
 
         Time.timeScale = 1f;
+        isGameActive = false;
         isGiveUpConfirming = false;
-        if (uiManager != null) uiManager.SetGiveUpPopupActive(false);
+        
+        if (uiManager != null) 
+        {
+            uiManager.SetGiveUpPopupActive(false);
+        }
 
         ClearSelectedCharacter();
         ClearExistingCharacters();
@@ -63,6 +102,11 @@ public class GameManager : MonoBehaviour
         uiManager.UpdateTimerText(timeRemaining);
         uiManager.ShowResultText("");
 
+        return true;
+    }
+
+    private void StartCurrentStage()
+    {
         isGameActive = true;
 
         if (SoundManager.Instance != null)
@@ -94,7 +138,7 @@ public class GameManager : MonoBehaviour
         {
             timeRemaining = 0;
             uiManager.UpdateTimerText(timeRemaining);
-            GameOver();
+            GameOver(); 
         }
 
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
@@ -127,10 +171,13 @@ public class GameManager : MonoBehaviour
 
     public void ConfirmGiveUpAndRestart()
     {
+        Time.timeScale = 1f; 
+        isGiveUpConfirming = false;
+        isGameActive = false;
+
         LoadStage(currentStageIndex);
     }
 
-    // 마우스 클릭 랭킹 확정용 추가
     public void ClickConfirmGiveUpButton()
     {
         if (!isGiveUpConfirming) return;
@@ -142,7 +189,8 @@ public class GameManager : MonoBehaviour
     {
         if (mainCamera == null || isGiveUpConfirming) return;
 
-        Vector2 mousePosition = Pointer.current.position.ReadValue();
+        // 2026 하이엔드 최신 InputSystem 구문 반영 오차 보정 보완
+        Vector2 mousePosition = Mouse.current.position.ReadValue();
         Ray ray = mainCamera.ScreenPointToRay(mousePosition);
         RaycastHit hit;
 
@@ -284,7 +332,7 @@ public class GameManager : MonoBehaviour
         CharacterPiece[] existingPieces = FindObjectsByType<CharacterPiece>(FindObjectsSortMode.None);
         foreach (CharacterPiece piece in existingPieces)
         {
-            Destroy(piece.gameObject);
+            if (piece != null && piece.gameObject != null) Destroy(piece.gameObject);
         }
 
         if (boardManager != null)
@@ -311,7 +359,6 @@ public class GameManager : MonoBehaviour
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clearClip);
         if (uiManager != null) uiManager.ShowResultText("ALL STAGES CLEAR!");
 
-        // 🎯 모든 스테이지 정복 시 최종 명예의 전당 입력창 활성화!
         float totalTakenTime = currentStageData.timeLimit - timeRemaining;
         if (uiManager != null) uiManager.OpenLeaderboardInput(currentStageData.stageNumber, totalTakenTime);
     }
@@ -321,7 +368,7 @@ public class GameManager : MonoBehaviour
         CharacterPiece[] allPieces = FindObjectsByType<CharacterPiece>(FindObjectsSortMode.None);
         foreach (var piece in allPieces)
         {
-            if (piece.IsMoving) return true;
+            if (piece != null && piece.IsMoving) return true;
         }
         return false;
     }
@@ -339,7 +386,6 @@ public class GameManager : MonoBehaviour
 
         if (uiManager != null) uiManager.ShowResultText("GAME OVER");
 
-        // 🎯 실패해서 게임오버 되었을 때도 그때까지 기록을 명예의 전당에 백업 유도!
         float takenTime = currentStageData.timeLimit - timeRemaining;
         if (uiManager != null) uiManager.OpenLeaderboardInput(currentStageIndex + 1, takenTime);
     }

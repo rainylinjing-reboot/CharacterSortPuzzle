@@ -685,6 +685,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 36217170}
+  - component: {fileID: 36217171}
   m_Layer: 0
   m_Name: ArrowSea
   m_TagString: Untagged
@@ -708,6 +709,25 @@ Transform:
   - {fileID: 1139884952}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &36217171
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 36217169}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5cf80c011995f94ca9fd0e753fead8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FloatingObject
+  bobAmplitude: 0.03
+  bobSpeed: 0.3
+  driftAmplitude: {x: 0.08, y: 0, z: 0.08}
+  rotationAmplitude: {x: 2, y: 0, z: 2}
+  rotationSpeed: 1
+  randomizePhase: 1
+  phaseOffset: 0
 --- !u!1 &38215877
 GameObject:
   m_ObjectHideFlags: 0
@@ -969,6 +989,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 60751202}
+  - component: {fileID: 60751203}
   m_Layer: 0
   m_Name: BuoyFlag
   m_TagString: Untagged
@@ -992,6 +1013,25 @@ Transform:
   - {fileID: 1211524314}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &60751203
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 60751201}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5cf80c011995f94ca9fd0e753fead8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FloatingObject
+  bobAmplitude: 0.03
+  bobSpeed: 0.15
+  driftAmplitude: {x: 0.08, y: 0, z: 0.08}
+  rotationAmplitude: {x: 4, y: 0, z: 4}
+  rotationSpeed: 0.25
+  randomizePhase: 1
+  phaseOffset: 0
 --- !u!4 &69799032 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 2ea96234e2fd957449ad1436bba56e6c, type: 3}
@@ -1677,6 +1717,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 188572422}
+  - component: {fileID: 188572423}
   m_Layer: 0
   m_Name: BoatFan
   m_TagString: Untagged
@@ -1700,6 +1741,25 @@ Transform:
   - {fileID: 724050166}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &188572423
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 188572421}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5cf80c011995f94ca9fd0e753fead8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FloatingObject
+  bobAmplitude: 0.02
+  bobSpeed: 0.12
+  driftAmplitude: {x: 0.08, y: 0, z: 0.08}
+  rotationAmplitude: {x: 4, y: 0, z: 4}
+  rotationSpeed: 0.3
+  randomizePhase: 1
+  phaseOffset: 0
 --- !u!1001 &189693169
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2491,7 +2551,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f1329edaf2ccd274d8c4e2de65e3a816, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.98272604
+      value: 0.9712175
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f1329edaf2ccd274d8c4e2de65e3a816, type: 3}
       propertyPath: m_LocalRotation.x
@@ -2499,7 +2559,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f1329edaf2ccd274d8c4e2de65e3a816, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.18506633
+      value: 0.23819445
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f1329edaf2ccd274d8c4e2de65e3a816, type: 3}
       propertyPath: m_LocalRotation.z
@@ -2511,7 +2571,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f1329edaf2ccd274d8c4e2de65e3a816, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 21.33
+      value: 27.56
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f1329edaf2ccd274d8c4e2de65e3a816, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -3079,7 +3139,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60
+  field of view: 64
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -9556,6 +9616,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 978070846}
+  - component: {fileID: 978070847}
   m_Layer: 0
   m_Name: Buoy
   m_TagString: Untagged
@@ -9579,6 +9640,25 @@ Transform:
   - {fileID: 2134703223}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0.31, y: 0, z: 2.28}
+--- !u!114 &978070847
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 978070845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5cf80c011995f94ca9fd0e753fead8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FloatingObject
+  bobAmplitude: 0.03
+  bobSpeed: 0.3
+  driftAmplitude: {x: 0.08, y: 0, z: 0.08}
+  rotationAmplitude: {x: 4, y: 0, z: 4}
+  rotationSpeed: 0.25
+  randomizePhase: 1
+  phaseOffset: 1
 --- !u!4 &982138659 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 7528b0e18fdfcff418b7529f6fef07dc, type: 3}
@@ -10170,6 +10250,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1045010475}
+  - component: {fileID: 1045010476}
   m_Layer: 0
   m_Name: BuoyFlag (1)
   m_TagString: Untagged
@@ -10193,6 +10274,25 @@ Transform:
   - {fileID: 384465906}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1045010476
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1045010474}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5cf80c011995f94ca9fd0e753fead8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FloatingObject
+  bobAmplitude: 0.03
+  bobSpeed: 0.15
+  driftAmplitude: {x: 0.08, y: 0, z: 0.08}
+  rotationAmplitude: {x: 4, y: 0, z: 4}
+  rotationSpeed: 0.25
+  randomizePhase: 1
+  phaseOffset: 0
 --- !u!1001 &1045357581
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13898,6 +13998,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1419339119}
+  - component: {fileID: 1419339120}
   m_Layer: 0
   m_Name: Heart
   m_TagString: Untagged
@@ -13921,6 +14022,25 @@ Transform:
   - {fileID: 1324733805}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1419339120
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1419339118}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5cf80c011995f94ca9fd0e753fead8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FloatingObject
+  bobAmplitude: 0.17
+  bobSpeed: 0.23
+  driftAmplitude: {x: 0.08, y: 0, z: 0.08}
+  rotationAmplitude: {x: 4, y: 0, z: 4}
+  rotationSpeed: 0.2
+  randomizePhase: 1
+  phaseOffset: 0
 --- !u!1 &1420131144
 GameObject:
   m_ObjectHideFlags: 0
@@ -14628,6 +14748,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1543403341}
+  - component: {fileID: 1543403342}
   m_Layer: 0
   m_Name: ship-pirate
   m_TagString: Untagged
@@ -14651,6 +14772,25 @@ Transform:
   - {fileID: 1551032866}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1543403342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1543403340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5cf80c011995f94ca9fd0e753fead8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FloatingObject
+  bobAmplitude: 0.03
+  bobSpeed: 0.3
+  driftAmplitude: {x: 0.08, y: 0, z: 0.08}
+  rotationAmplitude: {x: 2, y: 0, z: 2}
+  rotationSpeed: 1
+  randomizePhase: 1
+  phaseOffset: 0
 --- !u!1 &1545620206
 GameObject:
   m_ObjectHideFlags: 0
@@ -14940,6 +15080,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1563437167}
+  - component: {fileID: 1563437168}
   m_Layer: 0
   m_Name: Key
   m_TagString: Untagged
@@ -14963,6 +15104,25 @@ Transform:
   - {fileID: 458241230}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1563437168
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1563437166}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5cf80c011995f94ca9fd0e753fead8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FloatingObject
+  bobAmplitude: 0.21
+  bobSpeed: 0.2
+  driftAmplitude: {x: 0.08, y: 0, z: 0.08}
+  rotationAmplitude: {x: 4, y: 0, z: 4}
+  rotationSpeed: 0.23
+  randomizePhase: 1
+  phaseOffset: 0
 --- !u!1 &1567020585
 GameObject:
   m_ObjectHideFlags: 0
@@ -16065,6 +16225,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1704582304}
+  - component: {fileID: 1704582305}
   m_Layer: 0
   m_Name: Ship
   m_TagString: Untagged
@@ -16088,6 +16249,25 @@ Transform:
   - {fileID: 1455481918}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1704582305
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1704582303}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5cf80c011995f94ca9fd0e753fead8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FloatingObject
+  bobAmplitude: 0.025
+  bobSpeed: 0.3
+  driftAmplitude: {x: 0.08, y: 0, z: 0.08}
+  rotationAmplitude: {x: 4, y: 0, z: 4}
+  rotationSpeed: 1
+  randomizePhase: 1
+  phaseOffset: 2
 --- !u!1 &1705757312
 GameObject:
   m_ObjectHideFlags: 0
@@ -16097,6 +16277,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1705757313}
+  - component: {fileID: 1705757314}
   m_Layer: 0
   m_Name: Platform
   m_TagString: Untagged
@@ -16120,6 +16301,25 @@ Transform:
   - {fileID: 805945096}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1705757314
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1705757312}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5cf80c011995f94ca9fd0e753fead8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FloatingObject
+  bobAmplitude: 0.02
+  bobSpeed: 0.25
+  driftAmplitude: {x: 0.08, y: 0, z: 0.08}
+  rotationAmplitude: {x: 4, y: 0, z: 4}
+  rotationSpeed: 0.25
+  randomizePhase: 1
+  phaseOffset: 3
 --- !u!1 &1713148711
 GameObject:
   m_ObjectHideFlags: 0
@@ -19404,6 +19604,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2096366148}
+  - component: {fileID: 2096366149}
   m_Layer: 0
   m_Name: Star
   m_TagString: Untagged
@@ -19427,6 +19628,25 @@ Transform:
   - {fileID: 1182953149}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2096366149
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2096366147}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5cf80c011995f94ca9fd0e753fead8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FloatingObject
+  bobAmplitude: 0.02
+  bobSpeed: 0.5
+  driftAmplitude: {x: 0.08, y: 0, z: 0.08}
+  rotationAmplitude: {x: 4, y: 0, z: 4}
+  rotationSpeed: 0.2
+  randomizePhase: 1
+  phaseOffset: 0
 --- !u!1 &2099797496
 GameObject:
   m_ObjectHideFlags: 0

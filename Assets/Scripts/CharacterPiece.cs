@@ -85,13 +85,15 @@ public class CharacterPiece : MonoBehaviour
     {
         if (pathSlots == null || pathSlots.Count == 0) return;
 
+        Slot finalDestination = pathSlots[pathSlots.Count - 1];
+        if (finalDestination == null) return;
+
         SetSelectedOutline(false);
 
         // 기존 슬롯 데이터 정리
         if (currentSlot != null) currentSlot.ClearSlot();
 
         // 최종 목적지 슬롯 정보 등록
-        Slot finalDestination = pathSlots[pathSlots.Count - 1];
         currentSlot = finalDestination;
         finalDestination.SetCharacter(this);
 
@@ -99,8 +101,11 @@ public class CharacterPiece : MonoBehaviour
         movePath.Clear();
         foreach (Slot slot in pathSlots)
         {
+            if (slot == null) continue;
             movePath.Add(slot.transform.position);
         }
+
+        if (movePath.Count == 0) return;
 
         currentPathIndex = 0;
         isMoving = true;
@@ -158,6 +163,7 @@ private void ArriveAtDestination()
 
     private void LookAtCameraInstantly()
     {
+        if (mainCamera == null) mainCamera = Camera.main;
         if (mainCamera == null) return;
 
         Vector3 dirToCamera = mainCamera.transform.position - transform.position;

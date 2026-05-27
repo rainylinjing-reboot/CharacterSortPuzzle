@@ -9,6 +9,8 @@ public class LineController : MonoBehaviour
 
     private void Awake()
     {
+        if (slots == null) return;
+
         for (int i = 0; i < slots.Length; i++)
         {
             if (slots[i] != null)
@@ -21,6 +23,8 @@ public class LineController : MonoBehaviour
 
     public CharacterPiece GetTopCharacter()
     {
+        if (slots == null) return null;
+
         for (int i = slots.Length - 1; i >= 0; i--)
         {
             if (slots[i] != null && !slots[i].IsEmpty)
@@ -33,6 +37,8 @@ public class LineController : MonoBehaviour
 
     public Slot GetFirstEmptySlot()
     {
+        if (slots == null) return null;
+
         for (int i = 0; i < slots.Length; i++)
         {
             if (slots[i] != null && slots[i].IsEmpty)

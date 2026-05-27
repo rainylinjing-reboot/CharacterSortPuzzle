@@ -33,6 +33,8 @@ public class UIManager : MonoBehaviour
     private LeaderboardManager leaderboardManager;
     private int cachedFinalStage = 1;
     private float cachedTakenTime = 0f;
+    private int cachedRetryStageIndex = 0;
+    private bool retryCachedStage = false;
 
     private void Awake()
     {
@@ -114,6 +116,7 @@ public class UIManager : MonoBehaviour
 
         cachedFinalStage = finalStage;
         cachedTakenTime = takenTime;
+        retryCachedStage = false;
 
         if (SoundManager.Instance != null)
         {
@@ -138,6 +141,37 @@ public class UIManager : MonoBehaviour
             nameInputField.ActivateInputField(); 
         }
         if (saveButton != null) saveButton.gameObject.SetActive(true);
+    }
+
+    public void OpenFailureResult(int retryStageIndex)
+    {
+        if (giveUpPopupPanel != null && giveUpPopupPanel.activeSelf) return;
+
+        cachedRetryStageIndex = Mathf.Max(0, retryStageIndex);
+        retryCachedStage = true;
+
+        if (leaderboardPanel != null) leaderboardPanel.SetActive(true);
+
+        if (congratulationText != null)
+        {
+            congratulationText.gameObject.SetActive(true);
+            congratulationText.text = "FAIL!";
+        }
+
+        if (leaderboardContentText != null)
+        {
+            leaderboardContentText.text = "";
+            leaderboardContentText.gameObject.SetActive(false);
+        }
+
+        if (nameInputField != null)
+        {
+            nameInputField.text = "";
+            nameInputField.gameObject.SetActive(false);
+        }
+
+        if (saveButton != null) saveButton.gameObject.SetActive(false);
+        if (reStartButtonObject != null) reStartButtonObject.SetActive(true);
     }
 
     public void CloseLeaderboardInput()
@@ -183,13 +217,14 @@ public class UIManager : MonoBehaviour
         GameManager gm = FindFirstObjectByType<GameManager>();
         if (gm != null)
         {
-            gm.LoadStage(0); 
+            gm.LoadStage(retryCachedStage ? cachedRetryStageIndex : 0); 
         }
         else
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
         }
 
+        retryCachedStage = false;
         CloseLeaderboardInput();
     }
 

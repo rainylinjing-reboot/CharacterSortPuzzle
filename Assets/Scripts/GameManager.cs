@@ -31,6 +31,8 @@ public class GameManager : MonoBehaviour
 
     public void LoadStage(int index)
     {
+        index = Mathf.Max(0, index);
+
         if (stageLoadCoroutine != null)
         {
             StopCoroutine(stageLoadCoroutine);
@@ -46,6 +48,8 @@ public class GameManager : MonoBehaviour
 
     public void LoadStageDirectFromIntro(int index)
     {
+        index = Mathf.Max(0, index);
+
         if (stageLoadCoroutine != null)
         {
             StopCoroutine(stageLoadCoroutine);
@@ -138,6 +142,8 @@ public class GameManager : MonoBehaviour
 
     private void StartCurrentStage()
     {
+        if (currentStageData == null) return;
+
         isGameActive = true;
 
         if (SoundManager.Instance != null)
@@ -163,12 +169,12 @@ public class GameManager : MonoBehaviour
         if (timeRemaining > 0)
         {
             timeRemaining -= Time.deltaTime;
-            uiManager.UpdateTimerText(timeRemaining);
+            if (uiManager != null) uiManager.UpdateTimerText(timeRemaining);
         }
         else
         {
             timeRemaining = 0;
-            uiManager.UpdateTimerText(timeRemaining);
+            if (uiManager != null) uiManager.UpdateTimerText(timeRemaining);
             GameOver(); 
         }
 
@@ -218,6 +224,7 @@ public class GameManager : MonoBehaviour
 
     private void HandleMouseClick()
     {
+        if (mainCamera == null) mainCamera = Camera.main;
         if (mainCamera == null || isGiveUpConfirming) return;
 
         // 2026 하이엔드 최신 InputSystem 구문 반영 오차 보정 보완
@@ -264,12 +271,13 @@ public class GameManager : MonoBehaviour
 
     private void ProcessSlotClick(Slot clickedSlot)
     {
-        if (selectedCharacter == null || !clickedSlot.IsEmpty) return;
+        if (clickedSlot == null || selectedCharacter == null || !clickedSlot.IsEmpty) return;
+        if (selectedCharacter.currentSlot == null) return;
 
         LineController startLine = selectedCharacter.currentSlot.ownerLine;
         LineController targetLine = clickedSlot.ownerLine;
 
-        if (startLine == targetLine) return;
+        if (startLine == null || targetLine == null || startLine == targetLine) return;
 
         Slot realTargetSlot = targetLine.GetFirstEmptySlot();
 
@@ -279,31 +287,31 @@ public class GameManager : MonoBehaviour
 
             List<Slot> calculatedPath = new List<Slot>();
 
-            int exitGateIndex = 4;
-            if (startLine.slots[4] != null && !startLine.slots[4].IsEmpty) exitGateIndex = 5;
+            int exitGateIndex = ResolveGateIndex(startLine);
+            int enterGateIndex = ResolveGateIndex(targetLine);
+            if (exitGateIndex < 0 || enterGateIndex < 0) return;
 
             int startIdx = selectedCharacter.currentSlot.slotIndex;
             for (int i = startIdx + 1; i <= exitGateIndex; i++)
             {
-                if (startLine.slots[i] != null) calculatedPath.Add(startLine.slots[i]);
+                AddSlotIfPresent(calculatedPath, startLine, i);
             }
-
-            int enterGateIndex = 4;
-            if (targetLine.slots[4] != null && !targetLine.slots[4].IsEmpty) enterGateIndex = 5;
 
             if (exitGateIndex != enterGateIndex)
             {
-                if (exitGateIndex == 4 && startLine.slots[5] != null) calculatedPath.Add(startLine.slots[5]);
-                if (enterGateIndex == 4 && targetLine.slots[5] != null) calculatedPath.Add(targetLine.slots[5]);
+                if (exitGateIndex == 4) AddSlotIfPresent(calculatedPath, startLine, 5);
+                if (enterGateIndex == 4) AddSlotIfPresent(calculatedPath, targetLine, 5);
             }
 
-            if (targetLine.slots[enterGateIndex] != null) calculatedPath.Add(targetLine.slots[enterGateIndex]);
+            AddSlotIfPresent(calculatedPath, targetLine, enterGateIndex);
 
             int targetIdx = realTargetSlot.slotIndex;
             for (int i = enterGateIndex - 1; i >= targetIdx; i--)
             {
-                if (targetLine.slots[i] != null) calculatedPath.Add(targetLine.slots[i]);
+                AddSlotIfPresent(calculatedPath, targetLine, i);
             }
+
+            if (calculatedPath.Count == 0) return;
 
             selectedCharacter.MoveAlongPath(calculatedPath);
             ClearSelectedCharacter();
@@ -313,26 +321,31 @@ public class GameManager : MonoBehaviour
     public void CheckStageClearConditionDirect()
     {
         if (!isGameActive) return;
+        if (currentStageData == null || boardManager == null || boardManager.mainLines == null) return;
         if (AnyCharacterMoving()) return;
 
-        if (boardManager.waitingLine != null)
+        if (boardManager.waitingLine != null && boardManager.waitingLine.slots != null)
         {
             foreach (Slot slot in boardManager.waitingLine.slots)
             {
-                if (slot.gameObject.activeSelf && !slot.IsEmpty) return;
+                if (slot != null && slot.gameObject.activeSelf && !slot.IsEmpty) return;
             }
         }
 
-        for (int i = 0; i < currentStageData.activeLines; i++)
+        int activeLineCount = Mathf.Min(currentStageData.activeLines, boardManager.mainLines.Length);
+        for (int i = 0; i < activeLineCount; i++)
         {
             LineController line = boardManager.mainLines[i];
             if (line == null) continue;
+            if (line.slots == null || line.slots.Length < 4) return;
+            if (line.slots[0] == null) return;
 
             if (line.slots[0].IsEmpty) return;
             CharacterType targetType = line.slots[0].GetCharacter().characterType;
 
             for (int j = 0; j < 4; j++)
             {
+                if (line.slots[j] == null) return;
                 if (line.slots[j].IsEmpty || line.slots[j].GetCharacter().characterType != targetType) return;
             }
         }
@@ -372,10 +385,13 @@ public class GameManager : MonoBehaviour
             {
                 if (line != null)
                 {
-                    foreach (var slot in line.slots) if (slot != null) slot.ClearSlot();
+                    if (line.slots != null)
+                    {
+                        foreach (var slot in line.slots) if (slot != null) slot.ClearSlot();
+                    }
                 }
             }
-            if (boardManager.waitingLine != null)
+            if (boardManager.waitingLine != null && boardManager.waitingLine.slots != null)
             {
                 foreach (var slot in boardManager.waitingLine.slots) if (slot != null) slot.ClearSlot();
             }
@@ -390,8 +406,9 @@ public class GameManager : MonoBehaviour
         if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(SoundManager.Instance.clearClip);
         if (uiManager != null) uiManager.ShowResultText("ALL STAGES CLEAR!");
 
-        float totalTakenTime = currentStageData.timeLimit - timeRemaining;
-        if (uiManager != null) uiManager.OpenLeaderboardInput(currentStageData.stageNumber, totalTakenTime);
+        int finalStageNumber = currentStageData != null ? currentStageData.stageNumber : currentStageIndex;
+        float totalTakenTime = currentStageData != null ? currentStageData.timeLimit - timeRemaining : 0f;
+        if (uiManager != null) uiManager.OpenLeaderboardInput(finalStageNumber, totalTakenTime);
     }
 
     private bool AnyCharacterMoving()
@@ -415,10 +432,11 @@ public class GameManager : MonoBehaviour
             SoundManager.Instance.PlaySFX(SoundManager.Instance.failClip);
         }
 
-        if (uiManager != null) uiManager.ShowResultText("GAME OVER");
-
-        float takenTime = currentStageData.timeLimit - timeRemaining;
-        if (uiManager != null) uiManager.OpenLeaderboardInput(currentStageIndex + 1, takenTime);
+        if (uiManager != null)
+        {
+            uiManager.ShowResultText("FAIL!");
+            uiManager.OpenFailureResult(currentStageIndex);
+        }
     }
 
     private void SetSelectedCharacter(CharacterPiece character)
@@ -437,5 +455,32 @@ public class GameManager : MonoBehaviour
     {
         if (selectedCharacter != null) selectedCharacter.SetSelectedOutline(false);
         selectedCharacter = null;
+    }
+
+    private int ResolveGateIndex(LineController line)
+    {
+        if (!TryGetSlot(line, 4, out Slot frontGate)) return -1;
+        if (frontGate.IsEmpty) return 4;
+
+        return TryGetSlot(line, 5, out _) ? 5 : -1;
+    }
+
+    private static bool TryGetSlot(LineController line, int index, out Slot slot)
+    {
+        slot = null;
+
+        if (line == null || line.slots == null) return false;
+        if (index < 0 || index >= line.slots.Length) return false;
+
+        slot = line.slots[index];
+        return slot != null;
+    }
+
+    private static void AddSlotIfPresent(List<Slot> path, LineController line, int index)
+    {
+        if (TryGetSlot(line, index, out Slot slot))
+        {
+            path.Add(slot);
+        }
     }
 }

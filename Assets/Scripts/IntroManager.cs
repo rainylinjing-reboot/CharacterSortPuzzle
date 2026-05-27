@@ -22,7 +22,7 @@ public class IntroManager : MonoBehaviour
 
         if (SoundManager.Instance != null) SoundManager.Instance.PlayIntroBGM();
 
-        if (gameManager != null && boardManager != null && gameManager.allStages.Length > 0)
+        if (gameManager != null && boardManager != null && gameManager.allStages != null && gameManager.allStages.Length > 0)
         {
             StageData introPreviewStage = gameManager.allStages[0];
             boardManager.SetupBoard(introPreviewStage);

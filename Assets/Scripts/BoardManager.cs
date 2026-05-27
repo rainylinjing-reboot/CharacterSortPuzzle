@@ -13,7 +13,7 @@ public class BoardManager : MonoBehaviour
 
     public void SetupBoard(StageData stageData)
     {
-        if (stageData == null) return;
+        if (stageData == null || mainLines == null) return;
 
         for (int i = 0; i < mainLines.Length; i++)
         {
@@ -30,6 +30,8 @@ public class BoardManager : MonoBehaviour
             waitingLine.gameObject.SetActive(true);
             waitingLine.isWaitingLine = true;
 
+            if (waitingLine.slots == null) return;
+
             for (int i = 0; i < waitingLine.slots.Length; i++)
             {
                 if (waitingLine.slots[i] != null)
@@ -43,15 +45,18 @@ public class BoardManager : MonoBehaviour
 
     public void SpawnCharacters(StageData stageData)
     {
+        if (stageData == null || mainLines == null) return;
+
         if (prefabSet == null)
         {
-            Debug.LogError("CharacterPrefabSet이 없습니다.");
+            Debug.LogWarning("CharacterPrefabSet이 없습니다.");
             return;
         }
 
         // 1. 이번 스테이지에 필요한 캐릭터 리스트 생성
         List<CharacterType> characterPool = new List<CharacterType>();
-        for (int i = 0; i < stageData.activeLines; i++)
+        int activeLineCount = Mathf.Min(stageData.activeLines, mainLines.Length);
+        for (int i = 0; i < activeLineCount; i++)
         {
             CharacterType type = (CharacterType)(i + 1);
             for (int j = 0; j < 4; j++)
@@ -71,12 +76,14 @@ public class BoardManager : MonoBehaviour
 
         // 3. 캐릭터 생성 및 배치 (안전성 강화)
         int poolIndex = 0;
-        for (int i = 0; i < stageData.activeLines; i++)
+        for (int i = 0; i < activeLineCount; i++)
         {
             LineController line = mainLines[i];
+            if (line == null || line.slots == null) continue;
 
             // 각 라인의 Slot_0 ~ Slot_3에 배치
-            for (int j = 0; j < 4; j++)
+            int spawnSlotCount = Mathf.Min(4, line.slots.Length);
+            for (int j = 0; j < spawnSlotCount; j++)
             {
                 if (poolIndex >= characterPool.Count) break;
 

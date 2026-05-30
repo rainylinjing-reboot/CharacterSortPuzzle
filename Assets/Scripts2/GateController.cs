@@ -17,6 +17,13 @@ public class GateController : MonoBehaviour
     public float openAngle = 120f;
     public float openSpeed = 4f;
 
+    [Header("Closed Rotation")]
+    public Vector3 leftClosedEuler = new Vector3(0f, 90f, 0f);
+    public Vector3 rightClosedEuler = new Vector3(0f, 270f, 0f);
+
+    [Header("Reset Setting")]
+    public float resetDelay = 2.5f;
+
     [Header("Answer Setting")]
     public DoorSide correctDoor;
     public bool randomCorrectDoor = true;
@@ -28,30 +35,49 @@ public class GateController : MonoBehaviour
     private Quaternion rightClosedRotation;
 
     private bool isTriggered = false;
+    private bool isOpening = false;
+    private bool isInitialized = false;
+
+    private Coroutine openCoroutine;
+    private Coroutine resetCoroutine;
+
+    void Awake()
+    {
+        InitializeClosedRotation();
+    }
 
     void Start()
     {
-        SaveClosedRotation();
-        SetCorrectDoor();
+        Time.timeScale = 1f;
+
+        ResetGate();
+
+        Debug.Log("[GateController] Left Door Rotate = " + GetObjectName(leftDoorRotate));
+        Debug.Log("[GateController] Right Door Rotate = " + GetObjectName(rightDoorRotate));
     }
 
-    void SaveClosedRotation()
+    string GetObjectName(Transform target)
     {
-        if (leftDoorRotate != null)
-        {
-            leftClosedRotation = leftDoorRotate.localRotation;
-        }
+        if (target == null)
+            return "None";
 
-        if (rightDoorRotate != null)
-        {
-            rightClosedRotation = rightDoorRotate.localRotation;
-        }
+        return target.name;
+    }
+
+    void InitializeClosedRotation()
+    {
+        leftClosedRotation = Quaternion.Euler(leftClosedEuler);
+        rightClosedRotation = Quaternion.Euler(rightClosedEuler);
+        isInitialized = true;
     }
 
     void SetCorrectDoor()
     {
         if (randomCorrectDoor == false)
+        {
+            Debug.Log("[GateController] 정답 문 고정: " + correctDoor);
             return;
+        }
 
         int randomValue = Random.Range(0, 2);
 
@@ -64,10 +90,11 @@ public class GateController : MonoBehaviour
             correctDoor = DoorSide.Right;
         }
 
-        Debug.Log("[GateController] 정답 문: " + correctDoor);
+        Debug.Log("[GateController] 랜덤 정답 문: " + correctDoor);
     }
 
-    void OnTriggerEnter(Collider other)
+    // DoorHitTrigger가 호출하는 함수
+    public void CheckDoorHit(Collider other, DoorSide selectedDoor)
     {
         if (isTriggered == true)
             return;
@@ -77,92 +104,136 @@ public class GateController : MonoBehaviour
 
         isTriggered = true;
 
-        DoorSide playerSide = CheckPlayerSide(other.transform);
+        Debug.Log("[GateController] 플레이어가 닿은 문: " + selectedDoor);
+        Debug.Log("[GateController] 실제 정답 문: " + correctDoor);
 
-        if (playerSide == correctDoor)
+        if (selectedDoor == correctDoor)
         {
-            OpenCorrectDoor();
+            OpenSelectedDoor(selectedDoor);
         }
         else
         {
-            FailGate();
+            FailGate(selectedDoor);
         }
     }
 
-    DoorSide CheckPlayerSide(Transform player)
+    void OpenSelectedDoor(DoorSide selectedDoor)
     {
-        // Gate 기준으로 플레이어가 왼쪽에 있으면 Left, 오른쪽에 있으면 Right
-        if (player.position.x < transform.position.x)
+        if (isOpening == true)
+            return;
+
+        isOpening = true;
+
+        // 문 통과 카운트 증가
+        if (LuckyRunGameManager.instance != null)
         {
-            return DoorSide.Left;
+            LuckyRunGameManager.instance.AddGateCount();
+        }
+
+        if (openCoroutine != null)
+        {
+            StopCoroutine(openCoroutine);
+            openCoroutine = null;
+        }
+
+        if (selectedDoor == DoorSide.Left)
+        {
+            Debug.Log("[GateController] 왼쪽 문 열기 실행: " + GetObjectName(leftDoorRotate));
+            openCoroutine = StartCoroutine(OpenDoor(leftDoorRotate, leftClosedRotation, -openAngle));
         }
         else
         {
-            return DoorSide.Right;
+            Debug.Log("[GateController] 오른쪽 문 열기 실행: " + GetObjectName(rightDoorRotate));
+            openCoroutine = StartCoroutine(OpenDoor(rightDoorRotate, rightClosedRotation, openAngle));
         }
+
+        if (resetCoroutine != null)
+        {
+            StopCoroutine(resetCoroutine);
+            resetCoroutine = null;
+        }
+
+        resetCoroutine = StartCoroutine(ResetGateAfterDelay());
     }
 
-    void OpenCorrectDoor()
+    IEnumerator OpenDoor(Transform doorRotate, Quaternion closedRotation, float angle)
     {
-        Debug.Log("[GateController] 통과 성공: " + correctDoor);
+        if (doorRotate == null)
+        {
+            Debug.LogWarning("[GateController] 열 문이 비어 있습니다.");
+            yield break;
+        }
 
-        if (correctDoor == DoorSide.Left)
+        Quaternion targetRotation = closedRotation * Quaternion.Euler(0f, angle, 0f);
+
+        while (Quaternion.Angle(doorRotate.localRotation, targetRotation) > 0.5f)
         {
-            StartCoroutine(OpenLeftDoor());
+            doorRotate.localRotation = Quaternion.Slerp(
+                doorRotate.localRotation,
+                targetRotation,
+                openSpeed * Time.deltaTime
+            );
+
+            yield return null;
         }
-        else
-        {
-            StartCoroutine(OpenRightDoor());
-        }
+
+        doorRotate.localRotation = targetRotation;
     }
 
-    void FailGate()
+    IEnumerator ResetGateAfterDelay()
+    {
+        yield return new WaitForSeconds(resetDelay);
+
+        ResetGate();
+    }
+
+    public void ResetGate()
+    {
+        if (isInitialized == false)
+        {
+            InitializeClosedRotation();
+        }
+
+        if (openCoroutine != null)
+        {
+            StopCoroutine(openCoroutine);
+            openCoroutine = null;
+        }
+
+        if (resetCoroutine != null)
+        {
+            StopCoroutine(resetCoroutine);
+            resetCoroutine = null;
+        }
+
+        if (leftDoorRotate != null)
+        {
+            leftDoorRotate.localRotation = leftClosedRotation;
+        }
+
+        if (rightDoorRotate != null)
+        {
+            rightDoorRotate.localRotation = rightClosedRotation;
+        }
+
+        isTriggered = false;
+        isOpening = false;
+
+        SetCorrectDoor();
+
+        Debug.Log("[GateController] Gate 리셋 완료 / 새 정답 문: " + correctDoor);
+    }
+
+    void FailGate(DoorSide selectedDoor)
     {
         Debug.Log("[GateController] 실패: 닫힌 문 선택");
+        Debug.Log("[GateController] 선택한 문: " + selectedDoor + " / 정답 문: " + correctDoor);
 
-        // 일단 게임 전체 정지
+        if (LuckyRunGameManager.instance != null)
+        {
+            LuckyRunGameManager.instance.ShowRetryButton();
+        }
+
         Time.timeScale = 0f;
-    }
-
-    IEnumerator OpenLeftDoor()
-    {
-        if (leftDoorRotate == null)
-            yield break;
-
-        Quaternion targetRotation = leftClosedRotation * Quaternion.Euler(0f, -openAngle, 0f);
-
-        while (Quaternion.Angle(leftDoorRotate.localRotation, targetRotation) > 0.5f)
-        {
-            leftDoorRotate.localRotation = Quaternion.Slerp(
-                leftDoorRotate.localRotation,
-                targetRotation,
-                openSpeed * Time.deltaTime
-            );
-
-            yield return null;
-        }
-
-        leftDoorRotate.localRotation = targetRotation;
-    }
-
-    IEnumerator OpenRightDoor()
-    {
-        if (rightDoorRotate == null)
-            yield break;
-
-        Quaternion targetRotation = rightClosedRotation * Quaternion.Euler(0f, openAngle, 0f);
-
-        while (Quaternion.Angle(rightDoorRotate.localRotation, targetRotation) > 0.5f)
-        {
-            rightDoorRotate.localRotation = Quaternion.Slerp(
-                rightDoorRotate.localRotation,
-                targetRotation,
-                openSpeed * Time.deltaTime
-            );
-
-            yield return null;
-        }
-
-        rightDoorRotate.localRotation = targetRotation;
     }
 }

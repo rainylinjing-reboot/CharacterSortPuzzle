@@ -15,18 +15,32 @@ public class GateQuizController : MonoBehaviour
 
     [Header("Mission Setting")]
     public bool setupOnStart = true;
-    public float resetDelay = 2.5f;
+    public float resetDelay = 1.5f;
 
     [Header("Text Setting")]
     public string luckText = "LUCK";
     public string leftArrowText = "←";
     public string rightArrowText = "→";
 
+    [Header("Fail Impact")]
+    public bool useFailImpactPush = true;
+    public Vector3 failImpactDirectionLocal = new Vector3(0f, 0f, 1f);
+    public float failImpactDistance = 0.35f;
+    public float failImpactDuration = 0.12f;
+
     [Header("Debug")]
     public bool showDebugLog = true;
 
     private bool isResolved = false;
     private Coroutine resetCoroutine;
+    private Coroutine impactCoroutine;
+
+    private Vector3 originalLocalPosition;
+
+    void Awake()
+    {
+        originalLocalPosition = transform.localPosition;
+    }
 
     void Start()
     {
@@ -42,7 +56,7 @@ public class GateQuizController : MonoBehaviour
     {
         if (quizManager == null)
         {
-            quizManager = FindObjectOfType<QuizManager>();
+            quizManager = FindFirstObjectByType<QuizManager>();
         }
 
         AutoFindDoors();
@@ -106,6 +120,14 @@ public class GateQuizController : MonoBehaviour
             StopCoroutine(resetCoroutine);
             resetCoroutine = null;
         }
+
+        if (impactCoroutine != null)
+        {
+            StopCoroutine(impactCoroutine);
+            impactCoroutine = null;
+        }
+
+        transform.localPosition = originalLocalPosition;
 
         ResetWallFails();
 
@@ -338,7 +360,8 @@ public class GateQuizController : MonoBehaviour
     {
         Debug.Log("[GateQuizController] 실패: 잘못된 문 선택 / " + selectedDoor.name);
 
-        Time.timeScale = 0f;
+        PlayFailImpact();
+        CallGameOver();
     }
 
     public void FailGateByWall()
@@ -350,7 +373,62 @@ public class GateQuizController : MonoBehaviour
 
         Debug.Log("[GateQuizController] 실패: 문 사이 벽 충돌");
 
-        Time.timeScale = 0f;
+        PlayFailImpact();
+        CallGameOver();
+    }
+
+    void PlayFailImpact()
+    {
+        if (useFailImpactPush == false)
+            return;
+
+        if (impactCoroutine != null)
+        {
+            StopCoroutine(impactCoroutine);
+        }
+
+        impactCoroutine = StartCoroutine(FailImpactRoutine());
+    }
+
+    IEnumerator FailImpactRoutine()
+    {
+        Vector3 startPosition = transform.localPosition;
+        Vector3 targetPosition =
+            startPosition + failImpactDirectionLocal.normalized * failImpactDistance;
+
+        float timer = 0f;
+
+        while (timer < failImpactDuration)
+        {
+            timer += Time.unscaledDeltaTime;
+
+            float t = timer / failImpactDuration;
+            t = Mathf.SmoothStep(0f, 1f, t);
+
+            transform.localPosition = Vector3.Lerp(startPosition, targetPosition, t);
+
+            yield return null;
+        }
+
+        transform.localPosition = targetPosition;
+    }
+
+    void CallGameOver()
+    {
+        if (resetCoroutine != null)
+        {
+            StopCoroutine(resetCoroutine);
+            resetCoroutine = null;
+        }
+
+        if (LuckyRunGameManager.instance != null)
+        {
+            LuckyRunGameManager.instance.GameOver();
+        }
+        else
+        {
+            Time.timeScale = 0f;
+        }
     }
 
     IEnumerator ResetAfterDelay()

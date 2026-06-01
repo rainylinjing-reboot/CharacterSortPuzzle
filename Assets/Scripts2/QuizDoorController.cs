@@ -37,6 +37,11 @@ public class QuizDoorController : MonoBehaviour
     public float openSpeed = 4f;
     public float openDirection = 1f;
 
+    [Header("Auto Open Direction")]
+    public bool autoSetOpenDirectionByPrefabName = true;
+    public float leftHingeOpenDirection = -1f;
+    public float rightHingeOpenDirection = 1f;
+
     [Header("Player")]
     public string playerTag = "Player";
 
@@ -54,7 +59,6 @@ public class QuizDoorController : MonoBehaviour
         AutoFindComponents();
         SaveClosedRotation();
 
-        // 테스트용 기본 세팅
         ApplyDoorText();
     }
 
@@ -97,6 +101,11 @@ public class QuizDoorController : MonoBehaviour
         if (doorText == null)
         {
             doorText = GetComponentInChildren<TextMeshPro>();
+        }
+
+        if (doorHitCollider == null)
+        {
+            doorHitCollider = GetComponent<BoxCollider>();
         }
 
         if (doorHitCollider == null)
@@ -152,7 +161,9 @@ public class QuizDoorController : MonoBehaviour
             " / Text: " +
             displayText +
             " / Success: " +
-            isSuccessDoor
+            isSuccessDoor +
+            " / OpenDirection: " +
+            openDirection
         );
     }
 
@@ -179,7 +190,9 @@ public class QuizDoorController : MonoBehaviour
             " / Type: " +
             doorResultType +
             " / Text: " +
-            displayText
+            displayText +
+            " / OpenDirection: " +
+            openDirection
         );
     }
 
@@ -230,6 +243,8 @@ public class QuizDoorController : MonoBehaviour
             return;
         }
 
+        ApplyOpenDirectionFromPrefabName(prefab.name);
+
         currentDoorModel = Instantiate(prefab, doorModelRoot);
         currentDoorModel.transform.localPosition = Vector3.zero;
         currentDoorModel.transform.localRotation = Quaternion.identity;
@@ -238,6 +253,43 @@ public class QuizDoorController : MonoBehaviour
         FindDoorRotatePivotFromModel();
 
         SaveClosedRotation();
+    }
+
+    void ApplyOpenDirectionFromPrefabName(string prefabName)
+    {
+        if (autoSetOpenDirectionByPrefabName == false)
+            return;
+
+        if (string.IsNullOrEmpty(prefabName) == true)
+            return;
+
+        string lowerName = prefabName.ToLower();
+
+        if (
+            lowerName.Contains("_l_") ||
+            lowerName.Contains("left") ||
+            lowerName.Contains("_l")
+        )
+        {
+            openDirection = leftHingeOpenDirection;
+
+            Debug.Log("[QuizDoorController] 왼쪽 힌지 문 감지: " + prefabName + " / OpenDirection: " + openDirection);
+            return;
+        }
+
+        if (
+            lowerName.Contains("_r_") ||
+            lowerName.Contains("right") ||
+            lowerName.Contains("_r")
+        )
+        {
+            openDirection = rightHingeOpenDirection;
+
+            Debug.Log("[QuizDoorController] 오른쪽 힌지 문 감지: " + prefabName + " / OpenDirection: " + openDirection);
+            return;
+        }
+
+        Debug.Log("[QuizDoorController] 힌지 방향 이름 감지 실패. 기존 OpenDirection 사용: " + prefabName + " / OpenDirection: " + openDirection);
     }
 
     void FindDoorRotatePivotFromModel()
@@ -334,7 +386,6 @@ public class QuizDoorController : MonoBehaviour
         }
         else
         {
-            // GateQuizController가 아직 없을 때 테스트용 임시 처리
             if (isSuccessDoor == true)
             {
                 OpenDoor();

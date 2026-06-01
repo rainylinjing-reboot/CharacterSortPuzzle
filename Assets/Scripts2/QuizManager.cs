@@ -9,6 +9,14 @@ public class QuizManager : MonoBehaviour
     [Header("Quiz Setting")]
     public bool useLuckQuiz = true;
 
+    [Header("Number Difficulty")]
+    public bool useTwoDigitNumber = true;
+    public int oneDigitMin = 1;
+    public int oneDigitMax = 9;
+    public int twoDigitMin = 10;
+    public int twoDigitMax = 19;
+    public int twoDigitChancePercent = 45;
+
     private QuizData currentQuizData;
 
     void Start()
@@ -49,8 +57,10 @@ public class QuizManager : MonoBehaviour
 
     QuizData CreateAddQuiz()
     {
-        int leftNumber = Random.Range(1, 10);
-        int rightNumber = Random.Range(1, 10);
+        int leftNumber;
+        int rightNumber;
+
+        CreateQuestionNumbers(out leftNumber, out rightNumber);
 
         int answer = leftNumber + rightNumber;
         int wrongAnswer = CreateWrongAnswer(answer);
@@ -62,8 +72,10 @@ public class QuizManager : MonoBehaviour
 
     QuizData CreateMultiplyQuiz()
     {
-        int leftNumber = Random.Range(1, 10);
-        int rightNumber = Random.Range(1, 10);
+        int leftNumber;
+        int rightNumber;
+
+        CreateQuestionNumbers(out leftNumber, out rightNumber);
 
         int answer = leftNumber * rightNumber;
         int wrongAnswer = CreateWrongAnswer(answer);
@@ -73,9 +85,44 @@ public class QuizManager : MonoBehaviour
         return new QuizData(QuizType.Multiply, question, answer, wrongAnswer);
     }
 
+    void CreateQuestionNumbers(out int leftNumber, out int rightNumber)
+    {
+        leftNumber = CreateOneDigitNumber();
+        rightNumber = CreateOneDigitNumber();
+
+        if (useTwoDigitNumber == false)
+            return;
+
+        bool useTwoDigit = Random.Range(0, 100) < twoDigitChancePercent;
+
+        if (useTwoDigit == false)
+            return;
+
+        bool twoDigitOnLeft = Random.Range(0, 2) == 0;
+
+        if (twoDigitOnLeft == true)
+        {
+            leftNumber = CreateTwoDigitNumber();
+        }
+        else
+        {
+            rightNumber = CreateTwoDigitNumber();
+        }
+    }
+
+    int CreateOneDigitNumber()
+    {
+        return Random.Range(oneDigitMin, oneDigitMax + 1);
+    }
+
+    int CreateTwoDigitNumber()
+    {
+        return Random.Range(twoDigitMin, twoDigitMax + 1);
+    }
+
     QuizData CreateLuckQuiz()
     {
-        string question = "← or →, ?";
+        string question = "← or →";
 
         return new QuizData(QuizType.Luck, question, -1, -1);
     }
@@ -86,9 +133,18 @@ public class QuizManager : MonoBehaviour
 
         int safetyCount = 0;
 
-        while (wrongAnswer == answer && safetyCount < 20)
+        while (wrongAnswer == answer && safetyCount < 30)
         {
-            int offset = Random.Range(-3, 4);
+            int offset;
+
+            if (answer >= 50)
+            {
+                offset = Random.Range(-10, 11);
+            }
+            else
+            {
+                offset = Random.Range(-5, 6);
+            }
 
             if (offset == 0)
             {

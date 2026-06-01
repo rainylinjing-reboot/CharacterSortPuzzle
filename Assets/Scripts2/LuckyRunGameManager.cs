@@ -1,5 +1,6 @@
-using UnityEngine;
+using System.Collections;
 using TMPro;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -12,13 +13,26 @@ public class LuckyRunGameManager : MonoBehaviour
 
     [Header("UI")]
     public TextMeshProUGUI gateCountText;
+    public GameObject retryButtonObject;
     public Button retryButton;
-    public TextMeshProUGUI retryButtonText;
 
-    [Header("Retry Button")]
-    public string retryButtonLabel = "Retry";
-    public Vector2 retryButtonSize = new Vector2(260f, 90f);
-    public Vector2 retryButtonPosition = new Vector2(0f, -120f);
+    [Header("Fail Effect")]
+    public PlayerFailController playerFailController;
+    public FailCameraEffect failCameraEffect;
+    public float gameOverFreezeDelay = 1.2f;
+
+    [Header("World Movement")]
+    public RoadManager roadManager;
+    public bool stopRoadOnGameOver = true;
+
+    [Header("Retry")]
+    public bool reloadSceneOnRetry = true;
+
+    [Header("Debug")]
+    public bool showDebugLog = true;
+
+    private bool isGameOver = false;
+    private Coroutine gameOverCoroutine;
 
     void Awake()
     {
@@ -28,16 +42,71 @@ public class LuckyRunGameManager : MonoBehaviour
     void Start()
     {
         Time.timeScale = 1f;
+
+        AutoFindReferences();
         SetupRetryButton();
         HideRetryButton();
         UpdateGateCountUI();
     }
 
+    void AutoFindReferences()
+    {
+        if (playerFailController == null)
+        {
+            playerFailController = FindFirstObjectByType<PlayerFailController>();
+        }
+
+        if (failCameraEffect == null)
+        {
+            failCameraEffect = FindFirstObjectByType<FailCameraEffect>();
+        }
+
+        if (roadManager == null)
+        {
+            roadManager = FindFirstObjectByType<RoadManager>();
+        }
+
+        if (retryButtonObject == null)
+        {
+            GameObject foundRetry = GameObject.Find("RetryButton");
+
+            if (foundRetry != null)
+            {
+                retryButtonObject = foundRetry;
+            }
+        }
+
+        if (retryButton == null && retryButtonObject != null)
+        {
+            retryButton = retryButtonObject.GetComponent<Button>();
+
+            if (retryButton == null)
+            {
+                retryButton = retryButtonObject.GetComponentInChildren<Button>();
+            }
+        }
+    }
+
+    void SetupRetryButton()
+    {
+        if (retryButton == null)
+            return;
+
+        retryButton.onClick.RemoveListener(RetryGame);
+        retryButton.onClick.AddListener(RetryGame);
+    }
+
     public void AddGateCount()
     {
+        if (isGameOver == true)
+            return;
+
         gateCount++;
 
-        Debug.Log("[LuckyRunGameManager] 통과한 문 개수: " + gateCount);
+        if (showDebugLog == true)
+        {
+            Debug.Log("[LuckyRunGameManager] 통과한 문 개수: " + gateCount);
+        }
 
         UpdateGateCountUI();
     }
@@ -50,113 +119,148 @@ public class LuckyRunGameManager : MonoBehaviour
         }
     }
 
+    public void GameOver()
+    {
+        if (isGameOver == true)
+            return;
+
+        isGameOver = true;
+
+        if (showDebugLog == true)
+        {
+            Debug.Log("[LuckyRunGameManager] Game Over 시작");
+        }
+
+        if (gameOverCoroutine != null)
+        {
+            StopCoroutine(gameOverCoroutine);
+        }
+
+        gameOverCoroutine = StartCoroutine(GameOverRoutine());
+    }
+
+    IEnumerator GameOverRoutine()
+    {
+        Time.timeScale = 1f;
+
+        StopWorldMovement();
+
+        if (playerFailController != null)
+        {
+            playerFailController.PlayDie();
+        }
+
+        if (failCameraEffect != null)
+        {
+            failCameraEffect.PlayFailEffect();
+        }
+
+        yield return new WaitForSecondsRealtime(gameOverFreezeDelay);
+
+        ShowRetryButton();
+
+        Time.timeScale = 0f;
+
+        if (showDebugLog == true)
+        {
+            Debug.Log("[LuckyRunGameManager] Game Over 정지");
+        }
+    }
+
+    void StopWorldMovement()
+    {
+        if (stopRoadOnGameOver == false)
+            return;
+
+        if (roadManager != null)
+        {
+            roadManager.enabled = false;
+
+            if (showDebugLog == true)
+            {
+                Debug.Log("[LuckyRunGameManager] RoadManager 정지");
+            }
+        }
+    }
+
     public void ShowRetryButton()
     {
-        SetupRetryButton();
-
-        if (retryButton != null)
+        if (retryButtonObject != null)
         {
-            retryButton.gameObject.SetActive(true);
+            retryButtonObject.SetActive(true);
         }
     }
 
     public void HideRetryButton()
     {
-        if (retryButton != null)
+        if (retryButtonObject != null)
         {
-            retryButton.gameObject.SetActive(false);
+            retryButtonObject.SetActive(false);
         }
     }
 
-    public void Retry()
+    public void RetryGame()
     {
+        if (showDebugLog == true)
+        {
+            Debug.Log("[LuckyRunGameManager] Retry 실행");
+        }
+
         Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    }
 
-    void SetupRetryButton()
-    {
-        if (retryButton == null)
+        if (reloadSceneOnRetry == true)
         {
-            CreateRetryButton();
+            ReloadCurrentScene();
         }
-
-        if (retryButton == null)
-            return;
-
-        retryButton.onClick.RemoveListener(Retry);
-        retryButton.onClick.AddListener(Retry);
-
-        if (retryButtonText != null)
+        else
         {
-            retryButtonText.text = retryButtonLabel;
+            ResetGameWithoutSceneReload();
         }
     }
 
-    void CreateRetryButton()
+    void ReloadCurrentScene()
     {
-        Canvas canvas = null;
+        Scene currentScene = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(currentScene.name);
+    }
 
-        if (gateCountText != null)
+    void ResetGameWithoutSceneReload()
+    {
+        isGameOver = false;
+        gateCount = 0;
+
+        if (gameOverCoroutine != null)
         {
-            canvas = gateCountText.GetComponentInParent<Canvas>();
+            StopCoroutine(gameOverCoroutine);
+            gameOverCoroutine = null;
         }
 
-        if (canvas == null)
+        if (playerFailController != null)
         {
-            canvas = FindFirstObjectByType<Canvas>();
+            playerFailController.ResetFailState();
         }
 
-        if (canvas == null)
+        if (failCameraEffect != null)
         {
-            Debug.LogWarning("[LuckyRunGameManager] Retry 버튼을 만들 Canvas를 찾지 못했습니다.");
-            return;
+            failCameraEffect.ResetCamera();
         }
 
-        GameObject buttonObject = new GameObject(
-            "RetryButton",
-            typeof(RectTransform),
-            typeof(CanvasRenderer),
-            typeof(Image),
-            typeof(Button)
-        );
+        if (roadManager != null)
+        {
+            roadManager.enabled = true;
+        }
 
-        buttonObject.layer = canvas.gameObject.layer;
-        buttonObject.transform.SetParent(canvas.transform, false);
+        HideRetryButton();
+        UpdateGateCountUI();
 
-        RectTransform buttonRect = buttonObject.GetComponent<RectTransform>();
-        buttonRect.anchorMin = new Vector2(0.5f, 0.5f);
-        buttonRect.anchorMax = new Vector2(0.5f, 0.5f);
-        buttonRect.pivot = new Vector2(0.5f, 0.5f);
-        buttonRect.sizeDelta = retryButtonSize;
-        buttonRect.anchoredPosition = retryButtonPosition;
+        if (showDebugLog == true)
+        {
+            Debug.Log("[LuckyRunGameManager] 씬 리로드 없는 게임 리셋");
+        }
+    }
 
-        Image buttonImage = buttonObject.GetComponent<Image>();
-        buttonImage.color = new Color(0.12f, 0.12f, 0.12f, 0.92f);
-
-        retryButton = buttonObject.GetComponent<Button>();
-
-        GameObject textObject = new GameObject(
-            "Text",
-            typeof(RectTransform),
-            typeof(CanvasRenderer),
-            typeof(TextMeshProUGUI)
-        );
-
-        textObject.layer = buttonObject.layer;
-        textObject.transform.SetParent(buttonObject.transform, false);
-
-        RectTransform textRect = textObject.GetComponent<RectTransform>();
-        textRect.anchorMin = Vector2.zero;
-        textRect.anchorMax = Vector2.one;
-        textRect.offsetMin = Vector2.zero;
-        textRect.offsetMax = Vector2.zero;
-
-        retryButtonText = textObject.GetComponent<TextMeshProUGUI>();
-        retryButtonText.text = retryButtonLabel;
-        retryButtonText.fontSize = 42f;
-        retryButtonText.color = Color.white;
-        retryButtonText.alignment = TextAlignmentOptions.Center;
-        retryButtonText.raycastTarget = false;
+    public bool IsGameOver()
+    {
+        return isGameOver;
     }
 }

@@ -416,6 +416,11 @@ public class QuizDoorController : MonoBehaviour
 
         isOpened = true;
 
+        if (LuckyRunSoundManager.instance != null)
+        {
+        LuckyRunSoundManager.instance.PlayDoorOpenSound();
+        }
+
         if (openCoroutine != null)
         {
             StopCoroutine(openCoroutine);

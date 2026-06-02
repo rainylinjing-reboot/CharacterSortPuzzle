@@ -27,11 +27,13 @@ public class LuckyRunGameManager : MonoBehaviour
 
     [Header("Retry")]
     public bool reloadSceneOnRetry = true;
+    public float retryReloadDelay = 0.1f;
 
     [Header("Debug")]
     public bool showDebugLog = true;
 
     private bool isGameOver = false;
+    private bool isRetrying = false;
     private Coroutine gameOverCoroutine;
 
     void Awake()
@@ -145,6 +147,12 @@ public class LuckyRunGameManager : MonoBehaviour
 
         StopWorldMovement();
 
+        if (LuckyRunSoundManager.instance != null)
+        {
+            LuckyRunSoundManager.instance.StopRunSound();
+            LuckyRunSoundManager.instance.PlayHitSound();
+        }
+
         if (playerFailController != null)
         {
             playerFailController.PlayDie();
@@ -201,12 +209,34 @@ public class LuckyRunGameManager : MonoBehaviour
 
     public void RetryGame()
     {
+        if (isRetrying == true)
+            return;
+
+        isRetrying = true;
+
         if (showDebugLog == true)
         {
             Debug.Log("[LuckyRunGameManager] Retry 실행");
         }
 
+        if (retryButton != null)
+        {
+            retryButton.interactable = false;
+        }
+
+        StartCoroutine(RetryRoutine());
+    }
+
+    IEnumerator RetryRoutine()
+    {
         Time.timeScale = 1f;
+
+        if (LuckyRunSoundManager.instance != null)
+        {
+            LuckyRunSoundManager.instance.PlayRetrySound();
+        }
+
+        yield return new WaitForSecondsRealtime(retryReloadDelay);
 
         if (reloadSceneOnRetry == true)
         {
@@ -227,6 +257,7 @@ public class LuckyRunGameManager : MonoBehaviour
     void ResetGameWithoutSceneReload()
     {
         isGameOver = false;
+        isRetrying = false;
         gateCount = 0;
 
         if (gameOverCoroutine != null)
@@ -248,6 +279,16 @@ public class LuckyRunGameManager : MonoBehaviour
         if (roadManager != null)
         {
             roadManager.enabled = true;
+        }
+
+        if (LuckyRunSoundManager.instance != null)
+        {
+            LuckyRunSoundManager.instance.PlayRunSound();
+        }
+
+        if (retryButton != null)
+        {
+            retryButton.interactable = true;
         }
 
         HideRetryButton();

@@ -15,12 +15,19 @@ public class GateQuizController : MonoBehaviour
 
     [Header("Mission Setting")]
     public bool setupOnStart = true;
+
+    [Tooltip("정답 통과 후 시간으로 문을 리셋할지 여부. RoadManager 재사용 리셋을 쓰면 false 추천.")]
+    public bool resetAfterSuccessDelay = false;
+
     public float resetDelay = 1.5f;
 
     [Header("Text Setting")]
     public string luckText = "LUCK";
     public string leftArrowText = "←";
     public string rightArrowText = "→";
+
+    [Header("Luck Quiz Fixed Layout")]
+    public bool useFixedLuckQuizLayout = true;
 
     [Header("Fail Impact")]
     public bool useFailImpactPush = true;
@@ -145,6 +152,18 @@ public class GateQuizController : MonoBehaviour
             return;
         }
 
+        if (quizData.quizType == QuizType.Luck && useFixedLuckQuizLayout == true)
+        {
+            ApplyFixedLuckQuizDoors();
+
+            if (showDebugLog == true)
+            {
+                Debug.Log("[GateQuizController] 운 테스트 고정 배치 세팅 완료: " + quizData.questionText);
+            }
+
+            return;
+        }
+
         List<QuizDoorSetupData> doorSetupList = CreateDoorSetupList(quizData);
         ShuffleDoorSetupList(doorSetupList);
         ApplyDoorSetupList(doorSetupList);
@@ -227,6 +246,52 @@ public class GateQuizController : MonoBehaviour
         result.Add(closedDoor);
     }
 
+    void ApplyFixedLuckQuizDoors()
+    {
+        if (doors == null || doors.Length < 3)
+        {
+            Debug.LogWarning("[GateQuizController] 운 테스트 고정 배치 실패: Door 배열이 부족합니다.");
+            return;
+        }
+
+        bool leftIsSuccess = Random.Range(0, 2) == 0;
+
+        QuizDoorSetupData leftDoor = new QuizDoorSetupData(
+            QuizDoorController.DoorResultType.Luck,
+            leftArrowText,
+            leftIsSuccess,
+            true
+        );
+
+        QuizDoorSetupData centerDoor = new QuizDoorSetupData(
+            QuizDoorController.DoorResultType.Closed,
+            "",
+            false,
+            false
+        );
+
+        QuizDoorSetupData rightDoor = new QuizDoorSetupData(
+            QuizDoorController.DoorResultType.Luck,
+            rightArrowText,
+            !leftIsSuccess,
+            true
+        );
+
+        ApplyDoorSetupToDoor(0, leftDoor);
+        ApplyDoorSetupToDoor(1, centerDoor);
+        ApplyDoorSetupToDoor(2, rightDoor);
+
+        if (showDebugLog == true)
+        {
+            Debug.Log(
+                "[GateQuizController] 운 테스트 고정 배치 / Left Success: " +
+                leftIsSuccess +
+                " / Right Success: " +
+                (!leftIsSuccess)
+            );
+        }
+    }
+
     QuizDoorSetupData CreateSpecialDoor()
     {
         int randomValue = Random.Range(0, 2);
@@ -275,32 +340,41 @@ public class GateQuizController : MonoBehaviour
 
         for (int i = 0; i < doors.Length; i++)
         {
-            if (doors[i] == null)
-                continue;
-
             if (i >= doorSetupList.Count)
                 continue;
 
-            QuizDoorSetupData setupData = doorSetupList[i];
+            ApplyDoorSetupToDoor(i, doorSetupList[i]);
+        }
+    }
 
-            doors[i].doorIndex = i;
+    void ApplyDoorSetupToDoor(int doorIndex, QuizDoorSetupData setupData)
+    {
+        if (doors == null)
+            return;
 
-            doors[i].SetupDoor(
-                setupData.doorResultType,
-                setupData.displayText,
-                setupData.isSuccessDoor,
-                setupData.canOpen
+        if (doorIndex < 0 || doorIndex >= doors.Length)
+            return;
+
+        if (doors[doorIndex] == null)
+            return;
+
+        doors[doorIndex].doorIndex = doorIndex;
+
+        doors[doorIndex].SetupDoor(
+            setupData.doorResultType,
+            setupData.displayText,
+            setupData.isSuccessDoor,
+            setupData.canOpen
+        );
+
+        if (showDebugLog == true)
+        {
+            Debug.Log(
+                "[GateQuizController] Door " + doorIndex +
+                " / Type: " + setupData.doorResultType +
+                " / Text: " + setupData.displayText +
+                " / Success: " + setupData.isSuccessDoor
             );
-
-            if (showDebugLog == true)
-            {
-                Debug.Log(
-                    "[GateQuizController] Door " + i +
-                    " / Type: " + setupData.doorResultType +
-                    " / Text: " + setupData.displayText +
-                    " / Success: " + setupData.isSuccessDoor
-                );
-            }
         }
     }
 
@@ -348,12 +422,15 @@ public class GateQuizController : MonoBehaviour
             LuckyRunGameManager.instance.AddGateCount();
         }
 
-        if (resetCoroutine != null)
+        if (resetAfterSuccessDelay == true)
         {
-            StopCoroutine(resetCoroutine);
-        }
+            if (resetCoroutine != null)
+            {
+                StopCoroutine(resetCoroutine);
+            }
 
-        resetCoroutine = StartCoroutine(ResetAfterDelay());
+            resetCoroutine = StartCoroutine(ResetAfterDelay());
+        }
     }
 
     void HandleFailDoor(QuizDoorController selectedDoor)

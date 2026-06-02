@@ -62,10 +62,15 @@ MonoBehaviour:
   - {fileID: 1948340398308338428}
   - {fileID: 5234524237294947317}
   setupOnStart: 1
-  resetDelay: 1
+  resetAfterSuccessDelay: 0
+  resetDelay: 1.5
   luckText: LUCK
   leftArrowText: "\u2190"
   rightArrowText: "\u2192"
+  useFailImpactPush: 1
+  failImpactDirectionLocal: {x: 0, y: 0, z: 1}
+  failImpactDistance: 0.35
+  failImpactDuration: 0.12
   showDebugLog: 1
 --- !u!1 &1925963790903874551
 GameObject:
@@ -124,7 +129,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2277049383498071304}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.045}
+  m_LocalPosition: {x: 0, y: 0, z: -0.05}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -231,8 +236,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 3
-  m_fontSizeBase: 3
+  m_fontSize: 2.5
+  m_fontSizeBase: 2.5
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -241,7 +246,7 @@ MonoBehaviour:
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
-  m_characterSpacing: 0
+  m_characterSpacing: -0.2
   m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
@@ -350,9 +355,14 @@ MonoBehaviour:
   - {fileID: 3036235791851130829, guid: ec05adcce638e784b9e0a65deaaa3b1c, type: 3}
   - {fileID: 5194973000858504166, guid: f846e8ed503caff45afde4c1ed158ce4, type: 3}
   - {fileID: 6842307403972089966, guid: e32b5a303ba278349a7d2bb6ae078c1c, type: 3}
+  - {fileID: 6842307403972089966, guid: 2670842d54acdea40a6cc038e57bbbfe, type: 3}
+  - {fileID: 6842307403972089966, guid: cbf372586f5b64c4384f7b223eb04080, type: 3}
   openAngle: 120
   openSpeed: 4
   openDirection: 1
+  autoSetOpenDirectionByPrefabName: 1
+  leftHingeOpenDirection: -1
+  rightHingeOpenDirection: 1
   playerTag: Player
 --- !u!65 &7938013818592831416
 BoxCollider:
@@ -515,9 +525,14 @@ MonoBehaviour:
   - {fileID: 3036235791851130829, guid: ec05adcce638e784b9e0a65deaaa3b1c, type: 3}
   - {fileID: 5194973000858504166, guid: f846e8ed503caff45afde4c1ed158ce4, type: 3}
   - {fileID: 6842307403972089966, guid: e32b5a303ba278349a7d2bb6ae078c1c, type: 3}
+  - {fileID: 6842307403972089966, guid: 2670842d54acdea40a6cc038e57bbbfe, type: 3}
+  - {fileID: 6842307403972089966, guid: cbf372586f5b64c4384f7b223eb04080, type: 3}
   openAngle: 120
   openSpeed: 4
   openDirection: 1
+  autoSetOpenDirectionByPrefabName: 1
+  leftHingeOpenDirection: -1
+  rightHingeOpenDirection: 1
   playerTag: Player
 --- !u!65 &2334173167781701867
 BoxCollider:
@@ -635,7 +650,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6139362613719747646}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.045}
+  m_LocalPosition: {x: 0, y: 0, z: -0.05}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -742,8 +757,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 3
-  m_fontSizeBase: 3
+  m_fontSize: 2.5
+  m_fontSizeBase: 2.5
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -752,7 +767,7 @@ MonoBehaviour:
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
-  m_characterSpacing: 0
+  m_characterSpacing: -0.2
   m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
@@ -816,7 +831,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6262699180999922230}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.045}
+  m_LocalPosition: {x: 0, y: 0, z: -0.05}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -923,8 +938,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 3
-  m_fontSizeBase: 3
+  m_fontSize: 2.5
+  m_fontSizeBase: 2.5
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -933,7 +948,7 @@ MonoBehaviour:
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
-  m_characterSpacing: 0
+  m_characterSpacing: -0.2
   m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
@@ -1042,9 +1057,14 @@ MonoBehaviour:
   - {fileID: 3036235791851130829, guid: ec05adcce638e784b9e0a65deaaa3b1c, type: 3}
   - {fileID: 5194973000858504166, guid: f846e8ed503caff45afde4c1ed158ce4, type: 3}
   - {fileID: 6842307403972089966, guid: e32b5a303ba278349a7d2bb6ae078c1c, type: 3}
+  - {fileID: 6842307403972089966, guid: 2670842d54acdea40a6cc038e57bbbfe, type: 3}
+  - {fileID: 6842307403972089966, guid: cbf372586f5b64c4384f7b223eb04080, type: 3}
   openAngle: 120
   openSpeed: 4
   openDirection: 1
+  autoSetOpenDirectionByPrefabName: 1
+  leftHingeOpenDirection: -1
+  rightHingeOpenDirection: 1
   playerTag: Player
 --- !u!65 &513424105664123232
 BoxCollider:

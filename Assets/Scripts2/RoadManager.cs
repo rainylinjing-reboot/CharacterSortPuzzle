@@ -13,6 +13,12 @@ public class RoadManager : MonoBehaviour
     public float recycleDistance = 12f;
     public float roadSpeed = 5f;
 
+    [Header("Gate Reset")]
+    public bool resetGateWhenRoadRecycled = true;
+
+    [Header("Debug")]
+    public bool showDebugLog = true;
+
     [Header("Runtime")]
     public List<Transform> roads = new List<Transform>();
 
@@ -45,7 +51,11 @@ public class RoadManager : MonoBehaviour
                 }
             }
 
-            Debug.Log("[RoadManager] 기존 길 조각 사용: " + roads.Count);
+            if (showDebugLog == true)
+            {
+                Debug.Log("[RoadManager] 기존 길 조각 사용: " + roads.Count);
+            }
+
             return;
         }
 
@@ -63,7 +73,11 @@ public class RoadManager : MonoBehaviour
                 roads.Add(newRoad.transform);
             }
 
-            Debug.Log("[RoadManager] 프리팹으로 길 생성: " + roads.Count);
+            if (showDebugLog == true)
+            {
+                Debug.Log("[RoadManager] 프리팹으로 길 생성: " + roads.Count);
+            }
+
             return;
         }
 
@@ -109,6 +123,36 @@ public class RoadManager : MonoBehaviour
         Vector3 pos = road.position;
         pos.z = frontZ + roadLength;
         road.position = pos;
+
+        ResetGateOnRoad(road);
+    }
+
+    void ResetGateOnRoad(Transform road)
+    {
+        if (resetGateWhenRoadRecycled == false)
+            return;
+
+        if (road == null)
+            return;
+
+        GateQuizController gateQuizController = road.GetComponentInChildren<GateQuizController>(true);
+
+        if (gateQuizController == null)
+        {
+            if (showDebugLog == true)
+            {
+                Debug.Log("[RoadManager] 재사용 Road 안에 GateQuizController 없음: " + road.name);
+            }
+
+            return;
+        }
+
+        gateQuizController.SetupNewGateMission();
+
+        if (showDebugLog == true)
+        {
+            Debug.Log("[RoadManager] Road 재사용 → Gate 새 미션 세팅: " + road.name);
+        }
     }
 
     float GetFrontRoadZ()

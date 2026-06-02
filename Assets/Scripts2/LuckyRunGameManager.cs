@@ -10,11 +10,15 @@ public class LuckyRunGameManager : MonoBehaviour
 
     [Header("Gate Count")]
     public int gateCount = 0;
+    public int difficultyPassCount = 0;
 
     [Header("UI")]
     public TextMeshProUGUI gateCountText;
     public GameObject retryButtonObject;
     public Button retryButton;
+
+    [Header("Difficulty")]
+    public LuckyRunDifficultyManager difficultyManager;
 
     [Header("Fail Effect")]
     public PlayerFailController playerFailController;
@@ -49,10 +53,16 @@ public class LuckyRunGameManager : MonoBehaviour
         SetupRetryButton();
         HideRetryButton();
         UpdateGateCountUI();
+        UpdateDifficulty();
     }
 
     void AutoFindReferences()
     {
+        if (difficultyManager == null)
+        {
+            difficultyManager = FindFirstObjectByType<LuckyRunDifficultyManager>();
+        }
+
         if (playerFailController == null)
         {
             playerFailController = FindFirstObjectByType<PlayerFailController>();
@@ -100,17 +110,41 @@ public class LuckyRunGameManager : MonoBehaviour
 
     public void AddGateCount()
     {
+        AddGateCount(true);
+    }
+
+    public void AddGateCount(bool countForDifficulty)
+    {
         if (isGameOver == true)
             return;
 
         gateCount++;
 
+        if (countForDifficulty == true)
+        {
+            difficultyPassCount++;
+            UpdateDifficulty();
+        }
+
         if (showDebugLog == true)
         {
-            Debug.Log("[LuckyRunGameManager] 통과한 문 개수: " + gateCount);
+            Debug.Log(
+                "[LuckyRunGameManager] Pass: " +
+                gateCount +
+                " / Difficulty Count: " +
+                difficultyPassCount
+            );
         }
 
         UpdateGateCountUI();
+    }
+
+    void UpdateDifficulty()
+    {
+        if (difficultyManager != null)
+        {
+            difficultyManager.UpdateDifficulty(difficultyPassCount);
+        }
     }
 
     void UpdateGateCountUI()
@@ -259,6 +293,7 @@ public class LuckyRunGameManager : MonoBehaviour
         isGameOver = false;
         isRetrying = false;
         gateCount = 0;
+        difficultyPassCount = 0;
 
         if (gameOverCoroutine != null)
         {
@@ -293,6 +328,7 @@ public class LuckyRunGameManager : MonoBehaviour
 
         HideRetryButton();
         UpdateGateCountUI();
+        UpdateDifficulty();
 
         if (showDebugLog == true)
         {

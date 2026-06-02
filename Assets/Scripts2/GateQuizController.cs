@@ -43,6 +43,7 @@ public class GateQuizController : MonoBehaviour
     private Coroutine impactCoroutine;
 
     private Vector3 originalLocalPosition;
+    private QuizData currentQuizData;
 
     void Awake()
     {
@@ -145,6 +146,7 @@ public class GateQuizController : MonoBehaviour
         }
 
         QuizData quizData = quizManager.CreateNewQuiz();
+        currentQuizData = quizData;
 
         if (quizData == null)
         {
@@ -298,7 +300,16 @@ public class GateQuizController : MonoBehaviour
 
         if (randomValue == 0)
         {
-            bool luckSuccess = Random.Range(0, 2) == 0;
+            bool luckSuccess = false;
+
+            if (LuckyRunDifficultyManager.instance != null)
+            {
+                luckSuccess = LuckyRunDifficultyManager.instance.IsLuckSuccess();
+            }
+            else
+            {
+                luckSuccess = Random.Range(0, 2) == 0;
+            }
 
             return new QuizDoorSetupData(
                 QuizDoorController.DoorResultType.Luck,
@@ -419,7 +430,14 @@ public class GateQuizController : MonoBehaviour
 
         if (LuckyRunGameManager.instance != null)
         {
-            LuckyRunGameManager.instance.AddGateCount();
+            bool countForDifficulty = true;
+
+            if (currentQuizData != null && currentQuizData.quizType == QuizType.Luck)
+            {
+                countForDifficulty = false;
+            }
+
+            LuckyRunGameManager.instance.AddGateCount(countForDifficulty);
         }
 
         if (resetAfterSuccessDelay == true)

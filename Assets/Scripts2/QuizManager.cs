@@ -9,13 +9,15 @@ public class QuizManager : MonoBehaviour
     [Header("Quiz Setting")]
     public bool useLuckQuiz = true;
 
-    [Header("Number Difficulty")]
-    public bool useTwoDigitNumber = true;
+    [Header("Fallback Number Setting")]
     public int oneDigitMin = 1;
     public int oneDigitMax = 9;
     public int twoDigitMin = 10;
     public int twoDigitMax = 19;
-    public int twoDigitChancePercent = 45;
+    public int fallbackOneDigitChancePercent = 100;
+
+    [Header("Luck Quiz Control")]
+    public int consecutiveLuckQuizCount = 0;
 
     private QuizData currentQuizData;
 
@@ -26,22 +28,13 @@ public class QuizManager : MonoBehaviour
 
     public QuizData CreateNewQuiz()
     {
-        int quizTypeIndex;
+        QuizType selectedQuizType = SelectQuizType();
 
-        if (useLuckQuiz == true)
-        {
-            quizTypeIndex = Random.Range(0, 3);
-        }
-        else
-        {
-            quizTypeIndex = Random.Range(0, 2);
-        }
-
-        if (quizTypeIndex == 0)
+        if (selectedQuizType == QuizType.Add)
         {
             currentQuizData = CreateAddQuiz();
         }
-        else if (quizTypeIndex == 1)
+        else if (selectedQuizType == QuizType.Multiply)
         {
             currentQuizData = CreateMultiplyQuiz();
         }
@@ -50,9 +43,53 @@ public class QuizManager : MonoBehaviour
             currentQuizData = CreateLuckQuiz();
         }
 
+        if (currentQuizData.quizType == QuizType.Luck)
+        {
+            consecutiveLuckQuizCount++;
+        }
+        else
+        {
+            consecutiveLuckQuizCount = 0;
+        }
+
         ShowQuiz(currentQuizData);
 
         return currentQuizData;
+    }
+
+    QuizType SelectQuizType()
+    {
+        if (useLuckQuiz == false)
+        {
+            return Random.Range(0, 2) == 0 ? QuizType.Add : QuizType.Multiply;
+        }
+
+        int maxConsecutiveLuckQuiz = GetMaxConsecutiveLuckQuiz();
+
+        if (consecutiveLuckQuizCount >= maxConsecutiveLuckQuiz)
+        {
+            return Random.Range(0, 2) == 0 ? QuizType.Add : QuizType.Multiply;
+        }
+
+        int quizTypeIndex = Random.Range(0, 3);
+
+        if (quizTypeIndex == 0)
+            return QuizType.Add;
+
+        if (quizTypeIndex == 1)
+            return QuizType.Multiply;
+
+        return QuizType.Luck;
+    }
+
+    int GetMaxConsecutiveLuckQuiz()
+    {
+        if (LuckyRunDifficultyManager.instance != null)
+        {
+            return LuckyRunDifficultyManager.instance.GetCurrentMaxConsecutiveLuckQuiz();
+        }
+
+        return 1;
     }
 
     QuizData CreateAddQuiz()
@@ -87,42 +124,62 @@ public class QuizManager : MonoBehaviour
 
     void CreateQuestionNumbers(out int leftNumber, out int rightNumber)
     {
-        leftNumber = CreateOneDigitNumber();
-        rightNumber = CreateOneDigitNumber();
+        bool useOneDigitQuestion = ShouldUseOneDigitQuestion();
 
-        if (useTwoDigitNumber == false)
+        if (useOneDigitQuestion == true)
+        {
+            leftNumber = GetOneDigitNumber();
+            rightNumber = GetOneDigitNumber();
             return;
-
-        bool useTwoDigit = Random.Range(0, 100) < twoDigitChancePercent;
-
-        if (useTwoDigit == false)
-            return;
+        }
 
         bool twoDigitOnLeft = Random.Range(0, 2) == 0;
 
         if (twoDigitOnLeft == true)
         {
-            leftNumber = CreateTwoDigitNumber();
+            leftNumber = GetTwoDigitNumber();
+            rightNumber = GetOneDigitNumber();
         }
         else
         {
-            rightNumber = CreateTwoDigitNumber();
+            leftNumber = GetOneDigitNumber();
+            rightNumber = GetTwoDigitNumber();
         }
     }
 
-    int CreateOneDigitNumber()
+    bool ShouldUseOneDigitQuestion()
     {
+        if (LuckyRunDifficultyManager.instance != null)
+        {
+            return LuckyRunDifficultyManager.instance.ShouldUseOneDigitQuestion();
+        }
+
+        return Random.Range(0, 100) < fallbackOneDigitChancePercent;
+    }
+
+    int GetOneDigitNumber()
+    {
+        if (LuckyRunDifficultyManager.instance != null)
+        {
+            return LuckyRunDifficultyManager.instance.GetOneDigitNumber();
+        }
+
         return Random.Range(oneDigitMin, oneDigitMax + 1);
     }
 
-    int CreateTwoDigitNumber()
+    int GetTwoDigitNumber()
     {
+        if (LuckyRunDifficultyManager.instance != null)
+        {
+            return LuckyRunDifficultyManager.instance.GetTwoDigitNumber();
+        }
+
         return Random.Range(twoDigitMin, twoDigitMax + 1);
     }
 
     QuizData CreateLuckQuiz()
     {
-        string question = "← or →";
+        string question = "← OR →";
 
         return new QuizData(QuizType.Luck, question, -1, -1);
     }

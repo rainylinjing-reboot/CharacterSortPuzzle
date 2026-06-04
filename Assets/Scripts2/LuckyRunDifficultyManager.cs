@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class LuckyRunDifficultyManager : MonoBehaviour
 {
@@ -15,25 +16,29 @@ public class LuckyRunDifficultyManager : MonoBehaviour
     public float level1RoadSpeed = 5f;
     public int level1OneDigitChancePercent = 100;
     public int level1LuckSuccessPercent = 90;
-    public int level1MaxConsecutiveLuckQuiz = 1;
+    [FormerlySerializedAs("level1MaxConsecutiveLuckQuiz")]
+    public int level1MaxLuckQuizCount = 1;
 
     [Header("Level 2 / Difficulty Count 5~9")]
     public float level2RoadSpeed = 6f;
     public int level2OneDigitChancePercent = 60;
     public int level2LuckSuccessPercent = 75;
-    public int level2MaxConsecutiveLuckQuiz = 2;
+    [FormerlySerializedAs("level2MaxConsecutiveLuckQuiz")]
+    public int level2MaxLuckQuizCount = 2;
 
     [Header("Level 3 / Difficulty Count 10~14")]
     public float level3RoadSpeed = 7f;
     public int level3OneDigitChancePercent = 35;
     public int level3LuckSuccessPercent = 50;
-    public int level3MaxConsecutiveLuckQuiz = 3;
+    [FormerlySerializedAs("level3MaxConsecutiveLuckQuiz")]
+    public int level3MaxLuckQuizCount = 3;
 
     [Header("Level 4 / Difficulty Count 15+")]
     public float level4RoadSpeed = 8f;
     public int level4OneDigitChancePercent = 15;
     public int level4LuckSuccessPercent = 25;
-    public int level4MaxConsecutiveLuckQuiz = 3;
+    [FormerlySerializedAs("level4MaxConsecutiveLuckQuiz")]
+    public int level4MaxLuckQuizCount = 4;
 
     [Header("Number Range")]
     public int oneDigitMin = 1;
@@ -159,18 +164,18 @@ public class LuckyRunDifficultyManager : MonoBehaviour
         return level4LuckSuccessPercent;
     }
 
-    public int GetCurrentMaxConsecutiveLuckQuiz()
+    public int GetCurrentMaxLuckQuizCount()
     {
         if (currentLevel == 1)
-            return level1MaxConsecutiveLuckQuiz;
+            return level1MaxLuckQuizCount;
 
         if (currentLevel == 2)
-            return level2MaxConsecutiveLuckQuiz;
+            return level2MaxLuckQuizCount;
 
         if (currentLevel == 3)
-            return level3MaxConsecutiveLuckQuiz;
+            return level3MaxLuckQuizCount;
 
-        return level4MaxConsecutiveLuckQuiz;
+        return level4MaxLuckQuizCount;
     }
 
     public int GetOneDigitNumber()

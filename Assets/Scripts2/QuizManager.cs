@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class QuizManager : MonoBehaviour
 {
@@ -16,18 +17,23 @@ public class QuizManager : MonoBehaviour
     public int twoDigitMax = 19;
     public int fallbackOneDigitChancePercent = 100;
 
-    [Header("Luck Quiz Control")]
-    public int consecutiveLuckQuizCount = 0;
+    [Header("Luck Quiz Count Limit")]
+    [FormerlySerializedAs("consecutiveLuckQuizCount")]
+    public int luckQuizCountInCurrentLevel = 0;
+    public int currentLuckQuizLevel = 1;
 
     private QuizData currentQuizData;
 
     void Start()
     {
+        SyncLuckQuizLevel();
         CreateNewQuiz();
     }
 
     public QuizData CreateNewQuiz()
     {
+        SyncLuckQuizLevel();
+
         QuizType selectedQuizType = SelectQuizType();
 
         if (selectedQuizType == QuizType.Add)
@@ -41,15 +47,7 @@ public class QuizManager : MonoBehaviour
         else
         {
             currentQuizData = CreateLuckQuiz();
-        }
-
-        if (currentQuizData.quizType == QuizType.Luck)
-        {
-            consecutiveLuckQuizCount++;
-        }
-        else
-        {
-            consecutiveLuckQuizCount = 0;
+            luckQuizCountInCurrentLevel++;
         }
 
         ShowQuiz(currentQuizData);
@@ -57,18 +55,29 @@ public class QuizManager : MonoBehaviour
         return currentQuizData;
     }
 
+    void SyncLuckQuizLevel()
+    {
+        int level = GetCurrentDifficultyLevel();
+
+        if (currentLuckQuizLevel != level)
+        {
+            currentLuckQuizLevel = level;
+            luckQuizCountInCurrentLevel = 0;
+
+            Debug.Log("[QuizManager] 레벨 변경으로 운 테스트 등장 수 리셋: Level_" + currentLuckQuizLevel);
+        }
+    }
+
     QuizType SelectQuizType()
     {
         if (useLuckQuiz == false)
         {
-            return Random.Range(0, 2) == 0 ? QuizType.Add : QuizType.Multiply;
+            return GetRandomNumberQuizType();
         }
 
-        int maxConsecutiveLuckQuiz = GetMaxConsecutiveLuckQuiz();
-
-        if (consecutiveLuckQuizCount >= maxConsecutiveLuckQuiz)
+        if (CanCreateLuckQuiz() == false)
         {
-            return Random.Range(0, 2) == 0 ? QuizType.Add : QuizType.Multiply;
+            return GetRandomNumberQuizType();
         }
 
         int quizTypeIndex = Random.Range(0, 3);
@@ -82,11 +91,36 @@ public class QuizManager : MonoBehaviour
         return QuizType.Luck;
     }
 
-    int GetMaxConsecutiveLuckQuiz()
+    QuizType GetRandomNumberQuizType()
+    {
+        return Random.Range(0, 2) == 0 ? QuizType.Add : QuizType.Multiply;
+    }
+
+    bool CanCreateLuckQuiz()
+    {
+        int maxLuckQuizCount = GetCurrentMaxLuckQuizCount();
+
+        if (luckQuizCountInCurrentLevel >= maxLuckQuizCount)
+            return false;
+
+        return true;
+    }
+
+    int GetCurrentDifficultyLevel()
     {
         if (LuckyRunDifficultyManager.instance != null)
         {
-            return LuckyRunDifficultyManager.instance.GetCurrentMaxConsecutiveLuckQuiz();
+            return LuckyRunDifficultyManager.instance.currentLevel;
+        }
+
+        return 1;
+    }
+
+    int GetCurrentMaxLuckQuizCount()
+    {
+        if (LuckyRunDifficultyManager.instance != null)
+        {
+            return LuckyRunDifficultyManager.instance.GetCurrentMaxLuckQuizCount();
         }
 
         return 1;

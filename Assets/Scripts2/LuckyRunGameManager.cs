@@ -14,6 +14,7 @@ public class LuckyRunGameManager : MonoBehaviour
 
     [Header("UI")]
     public TextMeshProUGUI gateCountText;
+    public TextMeshProUGUI levelText;
     public GameObject retryButtonObject;
     public Button retryButton;
 
@@ -52,8 +53,10 @@ public class LuckyRunGameManager : MonoBehaviour
         AutoFindReferences();
         SetupRetryButton();
         HideRetryButton();
-        UpdateGateCountUI();
+
         UpdateDifficulty();
+        UpdateGateCountUI();
+        UpdateLevelUI();
     }
 
     void AutoFindReferences()
@@ -97,6 +100,16 @@ public class LuckyRunGameManager : MonoBehaviour
                 retryButton = retryButtonObject.GetComponentInChildren<Button>();
             }
         }
+
+        if (levelText == null)
+        {
+            GameObject foundLevelText = GameObject.Find("LevelText");
+
+            if (foundLevelText != null)
+            {
+                levelText = foundLevelText.GetComponent<TextMeshProUGUI>();
+            }
+        }
     }
 
     void SetupRetryButton()
@@ -137,6 +150,7 @@ public class LuckyRunGameManager : MonoBehaviour
         }
 
         UpdateGateCountUI();
+        UpdateLevelUI();
     }
 
     void UpdateDifficulty()
@@ -153,6 +167,35 @@ public class LuckyRunGameManager : MonoBehaviour
         {
             gateCountText.text = "Pass:" + gateCount;
         }
+    }
+
+    void UpdateLevelUI()
+    {
+        if (levelText == null)
+            return;
+
+        int level = GetCurrentLevel();
+
+        levelText.text = "Level:" + level;
+    }
+
+    int GetCurrentLevel()
+    {
+        if (difficultyManager != null)
+        {
+            return difficultyManager.currentLevel;
+        }
+
+        if (difficultyPassCount < 5)
+            return 1;
+
+        if (difficultyPassCount < 10)
+            return 2;
+
+        if (difficultyPassCount < 15)
+            return 3;
+
+        return 4;
     }
 
     public void GameOver()
@@ -327,8 +370,10 @@ public class LuckyRunGameManager : MonoBehaviour
         }
 
         HideRetryButton();
-        UpdateGateCountUI();
+
         UpdateDifficulty();
+        UpdateGateCountUI();
+        UpdateLevelUI();
 
         if (showDebugLog == true)
         {
